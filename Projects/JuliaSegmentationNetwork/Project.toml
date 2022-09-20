@@ -1,0 +1,4 @@
+name = "JuliaSegmentationNetwork"
+uuid = "d66ce583-f663-42f2-81f8-dea84f41facb"
+authors = ["Nicholas Gale <nick.gale1993@gmail.com>"]
+version = "0.1.0"

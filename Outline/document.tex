@@ -1,0 +1,94 @@
+\documentclass[12pt]{book}
+
+\usepackage{parskip}
+\usepackage{amsmath}
+\usepackage[left=2cm, right=2cm, top=2cm, bottom=2cm]{geometry}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+
+\begin{document}
+\tableofcontents
+
+
+\chapter{Introduction}
+The course is introduced by training a deep-convolutional neural network on an image classification task: birds or big cats. The training data will be shown as images of lions, leopards, and various types of corvids (black feathered birds). The validation set is some trivial examples and a panther. For each output the net will assign a probability and the panther as a dark example of a big cat will be on the boundary of the discriminator - a good example.
+
+\newpage
+\section{Mathematics}
+
+\subsection{Vectors and Matrices: Conventions}
+
+\subsection{Eigenvalues}
+
+\subsection{Gradient Descent}
+
+\subsection{Manifolds}
+
+\section{Statistics}
+A statistical model is a function with a representation of data and a parametrisation. Usually, the data is used to inform this parametrisation. The function is termed a 
+\textit{distribution} and captures, in essence, the probability of a given data point by drawn at random from the data pool. What is the probability that is image is a bird?
+
+\subsection{Probability and Random Variables}
+
+\subsection{Frequentist Statistics}
+
+\subsection{Bayesian Statistics}
+
+\subsubsection{Priors}
+
+\subsubsection{Posteriors}
+
+\section{Computation}
+Statistics (and in fact much of modern mathematics) requires the processing of large amount of data typically represented as some form of number. Humans are generally pretty good at understanding the concepts behind this processing, but not so good at doing the processing themselves. I am truly terrible. Computers and computer science have been developed to facilitate this task. We generally don't want to think too deeply about the lower level implementations when designing our machine learning tasks because we will get bogged down in the details. To this end many packages and ecosystems have been developed to abstract away these details but we should still be aware of them lest we encounter a grizzly pitfall.
+\subsection{Numerics}
+
+\subsubsection{Integer Underflow and the Log Trick}
+
+\subsection{High Performance Computing}
+
+\subsection{Data and Data Representation}
+
+\subsection{Julia and Flux}
+
+\chapter{Machine Learning}
+A simple definition: machine learning at its core is distribution matching: given some data and a canonical model representation learn parameters such that the model distribution matches the data. The models are generally classified as generative and discriminative. The methods for training a model can be split into: supervised, unsupervised, and reinforcement. We will focus on supervised discriminative models. 
+
+\section{Supervised Learning}
+
+\subsection{Loss Functions}
+Usually specified as some function of the difference between the empirical distribution (observed from data) and the model distribution. A common choice is the mean-squared error. 
+
+\subsection{Classification and Regression}
+
+\subsubsection{Training}
+
+\subsubsection{Linear Regression}
+
+\subsubsection{Logistic Regression}
+
+Why am I talking about this? Introduce the notion of a probability assigned to a class: is this a bird, or a cat. Logistic regression allows you to squash the continuum into the 0-1 range allowing you to assign it a probability. The classification task can then be thought of as: given a data point and a number of classes perform logistic regression on the data 
+
+\subsubsection{The Perceptron}
+
+\subsubsection{The XOR Gate}
+End the second lecture here.
+
+\chapter{Feed-Forward: Multilayer Peceptrons and Deep Learning}
+
+\subsection{MLP}
+
+\subsection{Convolutional Network}
+
+\subsection{Deep Convolutional Network}
+
+
+\chapter{Feed-Back: Recurrent Neural Networks}
+
+
+ 
+	
+	
+\end{document}
