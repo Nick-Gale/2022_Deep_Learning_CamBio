@@ -1,0 +1,318 @@
+---
+title: "Objectives and Optimisation"
+subtitle: "Training a network."
+author: "Nicholas Gale & Stephen Eglen"
+engine: jupyter
+execute:
+  echo: true
+format:
+  revealjs:
+    slide-number: true
+    theme: serif
+    chalkboard: true 
+    incremental: true
+---
+
+# Generic Training
+
+* We have seen several ways of training a network: by hand, Hebbs rule, least squares regression.
+
+* We would like a generic way to train networks.
+
+* To do this we need an objective, and a method to achieve it.
+
+# Objective/Loss
+
+* The *objective* or *loss* function is a measure of how successful the network is at its task.
+
+* It is usually (but not always) defined by the difference between the model prediction and the true value.
+
+$$ L(x, y) = f(\vert\hat{y}-y\vert|) $$
+
+* Common loss functions include: mean squared error, mean absolute error, Hamming distance, Kullback-Leibler divergence...
+
+# Choosing Loss
+
+* Loss function selection is crucial in training a network.
+
+* Ideally, aim to have loss reflect a real world measurement/goal.
+
+* Different losses will affect the training - experiment.
+
+# Training
+
+* With the loss selected we are free to train our model.
+
+* This involves selecting weights that minimise the loss on our data.
+
+* We typically split the data set into a *training set* and *validation set*.
+
+* We typically examine loss on a few elements of the training set at a time.
+
+* Anything (even random weight selection) that reduces loss is a valid training schedule.
+
+# Gradient Descent
+
+* Elementary calculus allows us to compute multivariate gradients: $ \nabla_{\vec{x}} f(\vec{x})$.
+
+* $\nabla f(\vec{x})$ tells us the rate of greatest change.
+
+* Choosing $x_{\text{new}} = x - \eta \nabla f(\vec{x})$ ensures $ f(\vec{x}_\text{new}) \leq f(\vec{x}) $
+
+# Convex Spaces
+
+* A space is convex if a line between any two points is within the space. Intuitively, it is convex.
+
+* Let $\vec{x}_{t+1} = \vec{x}_t + \eta \nabla f(\vec{x}) and let $f$ be convex.
+
+* Gradient descent ensures that the sequence $\{vec{x}_t}_{t=0}^{t=\infty}$ is monotone decreasing.
+
+* Monotone convergence theorem guarentees that $\vec{x}_t \rightarrow \vec{x}_\text{min}$ as $t \rightarrow \infty$.
+
+* Convergence within a given error bound $\epsilon$ is $O(1/T)$ where $T \propto 1/\eta$.
+
+# Gradient Descent Routine
+
+* The convex space convergence and loss guarentees motivate the following algorthim:
+
+``
+gf(x...) = gradient(f, x...)
+x = x0
+for t in 1:T
+	x .= x .- eta * gf(x)
+end
+``
+* Provided `f` has a gradient this routine will optimise `f` from `x0`.
+
+# Numerical Calculations of Gradients
+
+* Recall the 'high-school' definition of gradient.
+
+$ \frac{df(x)}{dx} =\lim_{h \rightarrow 0} \frac{f(x + h) - f(x)}{h} $
+
+* The numerical approximation requires the we specifiy $h$. 
+
+* For many variables:
+
+``
+function gf(f, x; h = 0.001)
+	g = similar(x)
+	for i in 1:length(x)
+		fx = f(x)
+		xi[i] += h; fxh = f(x); xi[i] -= h
+		g[i] = 1/h * (fxh - fx)
+	end
+	return g
+end
+``
+# Testing it out:
+
+*IMAGE OF GRADIENT DESCENT
+
+# Automatic Differentation
+
+* The numerical descent has a specified precision
+
+* Arbitrary precision can be achieved with Automatic Differentiation (see: Scientific Programming)
+
+* Packages: `Zygote`, `ForwardDiff`, `ReverseDiff`
+
+* Numerical is "easier" to implement. AD is faster and accurate.
+
+# Choosing step size
+
+* The step size $\eta$ dramatically affects GD.
+
+* Too small and the routine will take too long to converge.
+
+* Too large and there are numerical instabilities: osscilations or explosions.
+
+* One of the key hyperparameters in Deep Learning.
+
+# Best Step Size?
+
+* The best step size depends on the function landscape.
+
+* A flat landscape implies big steps are required; a jagged implies small.
+
+* Nice to have an *adaptive* step size based on curvature.
+
+# Hessian
+
+* The curvature is encoded in the second derivatives.
+
+* For multivariate functions this is given by the Hessian matrix:
+
+$$ H_{ij}(f, \vec{x}) = \frac{\partial^2 f(\vec{x}) }{\partial x_i \partial x_j} $$
+
+* The update rule is: $\vec{x}_{t+1} = \vec{x} - H^{-1}(f, \vec{x}) \vec{x}$.
+
+* When the space is strongly convex this converges super-linearly (very fast) to a derivative of zero.
+
+# Complexity and Saddles
+
+* The problem with the Hessian is two-fold. 
+
+* First, it converges to a derivative of zero and often finds saddle points (common in Deep Learning).
+
+* We therefore lose the guarentee of the loss being at a local minima.
+
+* Second, it requires calculation of a matrix. This has complexity $O(n^2)$ vs GD $O(n)$ in vector length.
+
+* This means the convergence effiency is offset by computational complexity.
+
+# Momentum
+
+* An alternative step modification is *momentum*.
+
+* It involves keeping a fraction of the past update and reusing it.
+
+* It can therefore act like a "heavy ball" and pick up speed.
+
+* The rule is:
+
+	$$ \Delta x_{t+1} = \beta \Delta \vec{x}_t - \eta \nabla f(\vec{x}_t) $$
+	$$ \vec{x}_{t+1} = \vec{x}_t + \Delta \vec{x}_{t+1} $$
+
+* It converges in $O(1/T^2)$ time and massively speeds up vanilla GD.
+
+# Optimisers
+
+:::: {.columns}
+
+::: {.column width = 50%}
+
+* There are a number of different GD based rules.
+
+* Each of these were typically designed for a specific task.
+
+* They often involve momentum and adaptive step sizes.
+
+* Often work by capturing some element of the Hessian.
+
+:::
+
+::: {.column width = 50%}
+Non exhaustive list:
+1. Momentum
+2. RMSprop
+3. AdaGrad
+4. AdaDelta
+5. Nesterov
+6. ADAM
+7. AMSGrad
+8. NADAM
+9. ...
+
+:::
+
+::::
+# Nesterov Momemtum
+
+* Nesterov Momentum has strong convergence guarentees and experimentally converges quicker than momentum.
+
+* The motivation is to "look-ahead" before performing an update and compensate.
+
+* The rule is given by:
+
+$$ \delta \vec{x}_{t+1} = \beta \Delta \vec{x}_t - \eta \nabla f(\vec{x}_t + \beta \Delta \vec{x}_t) $$
+$$ \vec{x}_{t+1} = \vec{x}_t + \Delta \vex{x}_{t+1} $$
+
+* The gradient is calculated based on the momentum updated position.
+
+* The true updated position therefore compensates momentum overshoot.
+
+# Nestrov Momentum: Applied
+
+* IMAGE OF NESTEROV MOMENTUM
+
+# ADAM
+
+* The ADAM optimiser has had great empirical success.
+
+* The rule involves two momentum variables:
+
+$$ \vec{m}_{t+1} = \beta_1 \vec{m}_{t} - (1 - \beta_1) \nabla f(\vec{x}_t) $$
+$$ \vec{v}_{t+1} = \beta_2 \vec{v}_{t} - (1 - \beta_2) \nabla f(\vec{x}_t)^2 $$
+$$ \Delta \vec{x}_{t+1} = \eta \frac{(1-\sqrt{\beta_2}^{t+1}) \vec{m}_{t+1}}{(1-\beta_1^{t+1}) (\sqrt{v_{t+1}} + \epsilon} $$
+$$ \vec{x}_{t+1} = \vec{x}_t + \Delta \vec{x}_{t+1} $$
+
+* $\epsilon$ is a smaller number for numerical stability.
+
+* The update rule works in part by incorporating curvature of the on-axis elements.
+
+# ADAM: Applied:
+
+* IMAGE OF ADAM DESCENT.
+
+# Which optimiser?
+
+* There is no universal best optimiser: free lunch theorem.
+
+* Debate around ADAM, RMSprop, etc. 
+
+* Stochastic Gradient Descent might be a better global optimiser.
+
+* Therefore, it is task specific - experiment.
+
+# Hyper-parameter tuning.
+
+* In general, the learning rate $\eta$ should be focused on first.
+
+* It typically has the largest effect.
+
+* Momentum can have varying effects.
+
+* Experimentation is the best.
+
+# Applying to Loss
+
+* Typically we think of parameters as fixed and data as variable: $p(x,W,b) = p(x | W, b)p(W,b)$
+
+* We can instead condition our parameters on data. $p(x, W, b) = p(W, b | x)p(x)$
+
+* For a given dataset we can calculate the derivative of loss wrt to weights and biases.
+
+* Changing weights and biases according to loss trains model towards objective.
+
+# Batching
+
+* Applying gradient descent to all available data is known as *batch gradient descent*.
+
+* Partitioning data into small batches and running sequentially through is known as *mini-batch* desecent.
+
+* This can be helpful if you don't have system resources.
+
+* An *epoch* of training is defined as $|\text{data}| / |\text{batch}|$
+# Stochastic Gradient Descent
+
+* Intsead of running batches sequentially we can choose data at *random*.
+
+* This is known as *stochastic gradient descent*.
+
+* The randomness allows avoidance of local minima: good global optimiser.
+
+* Any GD optimiser can be made stochastic by batching.
+
+* Default method of training networks.
+
+# Backpropagation
+
+* A network with many layers is trained using reverse mode automatic differentation.
+
+* This involves a forward pass through the function graph to compute the loss.
+
+* It is followed by a backward pass which calculates $\delta W_i$ for the weights.
+
+* The loss is thus *back-propogated* and this is typically how taking gradients is referred to.
+
+# Summary
+
+* Loss functions encoded the task objective.
+
+* Weights and biases of network are optimised to minmise loss on data.
+
+* These weights are trained (often stochastically) with reverse mode AD: backpropagation.
+
+* Many different heuristic optimisers to improve the speed/performance of this training.
+

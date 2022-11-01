@@ -1,0 +1,73 @@
+---
+title: "Regularisation and Constructing A Network"
+subtitle: "Training a network."
+author: "Nicholas Gale & Stephen Eglen"
+engine: jupyter
+execute:
+  echo: true
+format:
+  revealjs:
+    slide-number: true
+    theme: serif
+    chalkboard: true 
+    incremental: true
+---
+
+# Training a network
+
+* The general strategy is to formally assert your model as a series of layers of perceptron units: $f(\vec{x}; W, b)$.
+
+* These can have a topological structure, or be all-to-all connections.
+
+* Then the loss function is chosen to match the task: $L(x,y; W, b) = l(f(\vec{x}; W, b) - y)$.
+
+* The gradient is calculated wrt to weights and biases: $\nabla L(W,b | x, y)$.
+
+* The weights are updated according to the gradient: $ (W, b) = (W, b) + g(\nabla L(W, b))$
+
+
+# Regularisation
+
+* Network training can be optimised through various schemes: momentum, adapative step size, etc.
+
+* In addition, a network may be *regularised* to further improve training peformance.
+
+* Regularisation is a collection of techniques and tricks to help with training.
+
+* SGD, the most common optimiser, is a regularisation of gradient descent.
+
+# Bias-Variance Trade-off
+
+# Mathematical Regularisation
+
+# Explicit vs Implicit Regularisation
+
+# Weight Penalty Regularisation
+
+# Distribution Penalty Regularisation
+
+# Drop-out Regularisation
+
+# Early stopping
+
+# Data Augmentation
+
+# Label Smoothing
+
+# Batch Normalisation
+
+# Regularisation Summary
+
+# Building a network from scratch
+
+# Custom Type
+
+# Feed-forward functions
+
+# Zygote Differentation
+
+# Zygote Pitfalls
+ 
+# Training Routine
+
+# Training the XOR function
