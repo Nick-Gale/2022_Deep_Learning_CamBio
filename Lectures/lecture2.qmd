@@ -27,7 +27,7 @@ format:
 
 * The oldest neuron models date to 1901.
 
-* They are almost all based on the law of conductance: $ C \frac{dV}{dt} = I$.
+* They are almost all based on the law of conductance: $$ C\frac{dV}{dt} = I $$
 
 * Commonly classed as: integrate-and-fire, biophysical, hybrid, or stochastic.
 
@@ -35,55 +35,86 @@ format:
 
 * The oldest form of neuron model.
 
-* Assume neuron conductance is $g$:
-
-$$ \frac{dv){dt} = gI(t) $$
+* Assume neuron conductance is $g$: $$\frac{dv}{dt} = g I(t)$$
 
 * If $I(t) = \sum_{t_i\in\text{spike times}} \delta(t - t_i)$ then this "integrates" the spikes into membrane voltage.
 
-* Once a threshold is reach $v$ is reset to a baseline
+* Once a threshold is reached, $v$ is reset to a baseline.
 
 # Numerical Implementation:
 
-```{julia}
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{julia .incremental}
 using Plots
-dt = 0.01; T = collect(0:dt:1); iT = 0.25 .< T .< 0.75; g = 1; thresh = 2; reset = -1
+dt = 0.01; T = collect(0:dt:1);
+iT = 0.25 .< T .< 0.75;
+ g = 1; thresh = 0.2; reset = -0.1
 v = similar(T)
 for t in 2:length(T)
-	dv = g I(t) 
+	dv = g * iT[t]
 	v[t] = v[t-1] + dt * dv
 	if v[t] > thresh
 		v[t] = reset
 	end
 end
-plot(T, [v iT]; title="Integrate and Fire", label=["Membrane Voltage" "Current"])
 ```
+
+:::
+
+::: {.column width="50%" incremental=true}
+
+```{julia}
+#| echo: false
+a = plot(T, v; title="Integrate and Fire", label="Membrane Voltage")
+b = plot(T, iT; label="Current")
+plot(a,b; layout=(2,1), axis=:equal)
+```
+:::
+::::
+
 # Leaky Integrate and Fire
 
-* A slightly more sophisticated model recognises that a neurone tends to "rest" at a baseline.
+* A slightly more sophisticated model recognises that a neuron tends to "rest" at a baseline.
 
 * If it doesn't fire its membrane voltage decays through ion channels diffusion.
 
-* To model this we assume a resting voltage of $v_r$ and a differential equation:
-
-$$  \frac{v}{dt} = -g(v-v_r) + gI(t) $
+* To model this we assume a resting voltage of $v_r$ and a differential equation: $$\frac{dv}{dt} = -g(v-v_r) + gI(t)$$
 
 # Numerical Implementation:
 
-```{julia}
-using Plots
-dt = 0.01; T = collect(0:dt:1); iT = 0.25 .< T .< 0.75; g = 1; thresh = 2; reset = -1
+:::: {.columns}
 
-v = similar(T)
+::: {.column width="50%"}
+
+```{julia}
+dt = 0.01; T = collect(0:dt:1);
+iT = 0.1 .< T .< 0.5; 
+g = 1; thresh = 0.05; reset = -0.2
+vr = -0.05;
+v = zeros(length(T)) .- 0.1
 for t in 2:length(T)
-	dv = g * iT[t] - g * (v[t]-vr)
+	dv = g * iT[t] - (v[t-1]-vr)
 	v[t] = v[t-1] + dt * dv
 	if v[t] > thresh
 		v[t] = reset
 	end
 end
-plot(T, [v iT]; title="Integrate and Fire", label=["Membrane Voltage" "Current"])
 ```
+
+:::
+
+::: {.column width="50%"}
+```{julia}
+#| echo: false
+a = plot(T, v; title="Leaky Integrate and Fire", label="Membrane Voltage")
+b = plot(T, iT; label="Current")
+plot(a,b; layout=(2,1), axis=:equal)
+```
+:::
+::::
 
 # Hodgkin-Huxley
 
@@ -97,18 +128,19 @@ plot(T, [v iT]; title="Integrate and Fire", label=["Membrane Voltage" "Current"]
 
 # Hodgkin-Huxley Definition
 
-* The differential equations are as follows:
+* The differential equations are as follows: $$ C \frac{dv}{dt} = g_K n_1^4 (v_K - v) + g_{Na} n_2^3 n_3 (v_{Na} - v) + g_L(v_L - v) + I(t) \\ \frac{dn}{dt} = \alpha_{n_i}(v)(1-n_i)+\beta_{n_i}(v)n_i $$
 
-$$ C \frac{dv}{dt} = g_K n_1^4 (v_K - v) + g_{Na} n_2^3 n_3 (v_{Na} - v) + g_L(v_L - v) + I(t)$$
-$$ \frac{dn}{dt} = \alpha_{n_i}(v)(1-n_i)+\beta_{n_i}(v)n_i $$
-where the functions $\alpha_j, \beta_j$ take the generic form:
-$$ \frac{A_j (v - B_j)}{\exp\left(\frac{v-B_p}{C_p}\right) - D_p}.
+# 
+
+* The functions $\alpha_j, \beta_j$ take the generic form: $$\frac{A_j (v - B_j)}{\exp\left(\frac{v-B_p}{C_p}\right) - D_p}$$
 
 * The parameters can be found by fitting to neural voltage data.
 
 # Hodgkin Huxley Fit
 
-*IMAGE SHOWING THE FIT>
+![Membrane voltage of giant squid axon (top) against the model prediction (bottom)](./images/hhneuronetrace.png)
+
+[A brief historical perspective: Hodgkin and Huxley: J Physiol. 2012 Jun 1; 590(Pt 11): 2571–2575.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3424716/)
 
 # Hybrid Models
 
@@ -116,7 +148,7 @@ $$ \frac{A_j (v - B_j)}{\exp\left(\frac{v-B_p}{C_p}\right) - D_p}.
 
 * The integrate-and-fire models are *cheap*.
 
-* Hybrid models such as the Moris-Lecar reduce the biophysical HH type models to blend efficiency and accuracy.
+* Hybrid models  reduce the biophysical HH type models to blend efficiency and accuracy.
 
 * They usually consist of a voltage (v) and auxillary (u) variable. They can be useful in analtyical and computational frameworks.
 
@@ -124,7 +156,9 @@ $$ \frac{A_j (v - B_j)}{\exp\left(\frac{v-B_p}{C_p}\right) - D_p}.
 
 # Hybrid Model Fit
 
-*IMAGE SHOWING THE FIT>
+![Izhekivich model spiking predictions compared to rat cortical neurons](./images/izspike.png)
+
+[Simple Model of Spiking Neurons IEEE Transactions on Neural Networks (2003) 14:1569-1572](https://www.izhikevich.org/publications/spikes.html)	
 
 # Firing Rates
 
@@ -142,19 +176,28 @@ $$ \frac{A_j (v - B_j)}{\exp\left(\frac{v-B_p}{C_p}\right) - D_p}.
 
 * The final class of model is a stochastic model.
 
-* It asserts that neuron spiking is distributed as a Poisson process parameterised by firing rate r:
+* It asserts that neuron spiking is distributed as a Poisson process parameterised by firing rate $r$:  $$X \sim \text{Poisson}(r)$$
 
-$$X \sim \text{Poisson}(r)$$
+# Implementation
 
-* This is the cheapest model to implement: for a given $dt$ spike if a random number p satisfies $rdt<p$.
+* A spike train is created by choosing a rate $r$ and a time interval $dt$.
 
-* The inhomogenous process allows $ r = r(t) $ if the rate changes slowly.
+* At the $N$th time step (time $t_0 + N dt$) sample a uniform random number $p$.
 
-* This captures most statistical properities of a real neuron.
+* If $p < r dt$ then record a spike.
 
-* A cheap way to generate spike data.
+* This is the cheapest spiking model to implement.
+
+# Inhomogeneous Poisson
+
+* The inhomogenous process process allows $r = r(t)$ if the rate changes slowly. $$X\sim\text{Poisson}(r(t)$$
+
+* This process captures most statistical properties of real neurons.
+
+* Stochastic process are a cheap way to generate spike data.
 
 # Activation Functions
+
 
 * A probabilistic intepretation leads us to relate rates/probabilities with membrane voltage
 
@@ -162,7 +205,21 @@ $$X \sim \text{Poisson}(r)$$
 
 * The most biologically accurate function is the sigmoid.
 
-* IMAGE OF SIGMOID
+# Sigmoid Activation
+
+* Let the maximum firing rate of a neurone be Q; its threshold be $\theta$; and slope-response to voltage be $\beta$
+
+* The sigmoid function $s$ is given by: $$ s(x; \beta, Q, \theta) = \frac{Q}{1 + \exp\left(-\frac{x-\theta}{\beta}\right)}$$
+
+# 
+
+```{julia}
+#| echo: false
+#| incremental: true
+x=-10:0.01:10;
+f(x) = 1/(1+exp(-x))
+plot(x, f.(x); title="Sigmoid Activation", label=false, xticks=false, xlabel="Membrane Voltage", yticks=([0,1], ["", "Saturation"]), ylim=(0,1))
+```
 
 # Common Activation Functions
 
@@ -172,9 +229,38 @@ $$X \sim \text{Poisson}(r)$$
 
 * Tanh(x): a scaled sigmoid to be odd around the origin.
 
-* ramp(x): a computationally cheap approximation.
+* ramp(x): a computationally cheap approximation. Also called Rectified Linear Unit (relu)
 
 * Heaviside(x): a simple on/off intepretation that is useful in proofs.
+
+# Tanh
+
+```{julia}
+#| echo: false
+#| incremental: true
+x=-2:0.01:2;
+f(x) = tanh(x)
+plot(x, f.(x); title="Tanh Activation", label=false, xticks=false, xlabel="Membrane Voltage", yticks=([-1,0,1], ["", "", "Saturation"]), ylim=(0,1))
+```
+
+# Ramp/Rectified Linear Unit (ReLu)
+
+```{julia}
+#| echo: false
+#| incremental: true
+x=-10:0.01:10;
+f(x) = (x > 0) .* x
+plot(x, f.(x); title="ReLu Activation", label=false, xticks=false, xlabel="Membrane Voltage", yticks=([0,1], ["", "Saturation"]), ylim=(0,1))
+```
+# Heaviside
+
+```{julia}
+#| echo: false
+#| incremental: true
+x=-10:0.01:10;
+f(x) = 1.0 .* (x > 0)
+plot(x, f.(x); title="Heaviside (ON/OFF) Activation", label=false, xticks=false, xlabel="Membrane Voltage", yticks=([0,1], ["", "Saturation"]), ylim=(0,1))
+```
 
 # Neural Network Models
 
@@ -190,9 +276,7 @@ $$X \sim \text{Poisson}(r)$$
 
 * A dynamical network model is composed of internal dynamics of the node and contributions from the edges.
 
-* It typically takes the form:
-
-$$ \frac{dv_i}{dt} = f(v_i, t) + \sum_{j=1}{N} W_{ij} g(v_j, t) $$.
+* It typically takes the form: $$\frac{dv_i}{dt} = f(v_i, t) + \sum_{j=1}{N} W_{ij} g(v_j, t) $$
 
 # Dendrites
 
@@ -226,11 +310,13 @@ $$ \frac{dv_i}{dt} = f(v_i, t) + \sum_{j=1}{N} W_{ij} g(v_j, t) $$.
 
 * The neurons are indexed by $i$ and the weights by $W_{ij}$. The inputs are given to neurons as $u_i^0 = I_i$.
 
-* The neurons state is evolved as $u_i^{t+1} = sign(\sum_j W{ij} u_j^t)$ 
+* The neurons state is evolved as $$u_i^{t+1} = \text{sign}(\sum_j W{ij} u_j^t)$$
+
+# 
 
 * The sign function classifies neurons as active/inactive and the state is evolved until it is steady.
 
-* The steady state can be compared to a hashing function classify.
+* The steady state can be compared to a hashing function to classify an input.
 
 # The Hebb rule: Training
 
@@ -238,17 +324,21 @@ $$ \frac{dv_i}{dt} = f(v_i, t) + \sum_{j=1}{N} W_{ij} g(v_j, t) $$.
 
 * The Hebb rules states: neurons that fire together wire together. This means coactive neurons strengthen; otherwise they decay.
 
-* To encode an input pattern $v$ we take the autocovariance as the weight change i.e. the Hebb rule:
+* To encode an input pattern $v$ we take the autocovariance as the weight change i.e. the Hebb rule: $$ \Delta W_{ij} = v_i v_j $$
 
-$$ \Delta W_{ij} = v_i * v_j $$
+#
 
-* This ensures that the steady state of the pattern v is v itself.
+* The autocovariance relationship ensures that the steady state of the pattern v is v itself.
 
-* To train M such patterns we simply take the linear addition and hash the patterns for classification.
+* To train M such patterns we simply take the mean of the linear combinations of the Hebb rule.
+
+* We also hash the patterns for classification later.
 
 # Hopfield Network Training
 
 ```{julia}
+#| output: false
+#| code-line-numbers: "2|5|6|7|12"
 using Random
 delW(v) = sign.(v) .* sign.(v)'
 function constructW(data)
@@ -274,22 +364,21 @@ trained = constructW(data)
 
 # Partial Input: Prediction
 ```{julia}
+#| echo: false
 function class_predict(W, hash, v; M = 100)
     u = deepcopy(v)
-    
     for i = 1:M
         u .= sign.(W * u)
     end 
-    
     if haskey(hash, u)
         return hash[u]
     else
         return "unclassified"
     end
 end
-
+```
+```{julia}
 corrupt(c) = map(x -> (rand()>0.5) ? x : -sign(x) * rand(), c)
-
 for i in data
     pred = class_predict(trained, hash, corrupt(i))
     cl = hash[i]
@@ -349,9 +438,7 @@ end
 
 # The Perceptron
 
-* The neural network dynamics on a single neurone with dendritic inputs $W$, an activation function $f$ and a resting potential $b$  look like:
-
-$ y = f(W x + b) $
+* The neural network dynamics on a single neurone with dendritic inputs $W$, an activation function $f$ and a resting potential $b$  look like: $$y = f(W x + b)$$
 
 * This is called a perceptron and can be used to classify things in binary format using a threshold.
 
@@ -363,9 +450,9 @@ $ y = f(W x + b) $
 
 * This is also routed in the brain: attention signals can mediate desired outputs.
 
-* The routine for training a regressor $\x_t$ with ouput $\xi_t$ and target output $y_t$ is:
+* The routine for training a regressor $x_t$ with ouput $xi_t$ and target output $y_t$ is: $$W_{ij}(t+1) = W_{ij}(t) + r (x_i - y_i) v_j$$
 
-$$W_{ij}(t+1) = W_{ij}(t) + r (x_i - y_i) v_j$$.
+#
 
 * The learning rate is dictated by $r$.
 
@@ -374,26 +461,38 @@ $$W_{ij}(t+1) = W_{ij}(t) + r (x_i - y_i) v_j$$.
 * This is true for any activation function that is monotonic.
 
 # Perception Training.
-```{julia}
-using Plots
-plotly()
-domestic_class = ["🐈", "🐀", "🐔", "🐕"]
-wild_class = ["🦥", "🐗", "🦊", "🦓", "🦘", "🦉", "🦄"]
-domestic = [[0.740562, 0.74002, 1.15348, 0.773644], [0.32662, 0.835877,  1.04288,  1.04741]]
-wild = [[1.17844, 1.98878, 1.19889,  1.92041,  2.10834,  1.55384,  1.07955], [1.60585,  1.96469,  1.68477,  1.40337,  1.21203,  1.3704,  1.0018]];
-function np()
-    p = plot(; xlim=(0,2.3), ylim=(0,2.3), title="Animals")
-    for i in 1:length(domestic[1])
-        annotate!(p, (domestic[1][i], domestic[2][i], text(domestic_class[i])))
-    end
+:::: {.columns}
 
-    for i in 1:length(wild[1])
-        annotate!(p, (wild[1][i], wild[2][i], text(wild_class[i])))
+::: {.column width="50%"}
+
+```{julia}
+function train_epoch(domestic, wild, W, b, r, thresh)
+    # class 1
+    for i = 1:(length(domestic[1]) + length(wild[1]))
+        if i <= length(domestic[1])
+            datum = [domestic[1][i], domestic[2][i]]
+        else
+            datum = [wild[1][i], wild[2][i]]
+        end
+        pred = W * datum .+ b
+        err = (pred[1] > thresh)
+        W = W .- r .* err .* datum'
+        b = b .- r .* err 
     end
-    return p
+    
+    return W, b
 end
-p = np()
 ```
+:::
+
+::: {.column width=50%}
+
+![Perceptron Training on Classes](./images/perceptron_animation.gif)
+
+:::
+
+::::
+
 
 # The XOR problem.
 
@@ -403,16 +502,17 @@ p = np()
 
 * This was highlighted by the XOR problem: a perceptron model of the XOR gate.
 
-* XOR is given by: $ (00) \mapsto 0, (01) \mapsto 1, (10) \mapsto 1, (11) \mapsto 0$
+* XOR is given by: $$(00) \mapsto 0, (01) \mapsto 1, (10) \mapsto 1, (11) \mapsto 0$$
 
 
 # The XOR problem visualised.
 
 ```{julia}
+#| echo: false
 using Plots
-plot([0 0],[1 0],[1 1], [0 1]; title="XOR", label=["True" "False"], c = [:orange, :blue, :orange, :blue])
+plot([0, 0, 1, 1], [0,1,0,1]; st=:scatter, title="XOR", label=false, ticks=false, xlim=(-0.2, 1.2), ylim = (-0.2, 1.2), c = [:blue, :orange, :orange, :blue], markersize=30)
 ```
-
+* The false values are indicated in blue and the true values in orange.
 * There is *no* line that can be drawn to seperate blues and oranges.
 
 # Two layers: solving XOR
@@ -443,6 +543,9 @@ xor.([[0,0], [0,1], [1,0], [1,1]])
 * When multiple layers of perceptrons are chained together they are called: *multi-layer perceptrons* (MLPs).
 
 * These are the most general form of *artificial neural networks* (ANNs).
+
+
+#
 
 * They can be used to model *any* function and are thus universal models.
 

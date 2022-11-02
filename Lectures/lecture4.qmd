@@ -36,38 +36,265 @@ format:
 
 * SGD, the most common optimiser, is a regularisation of gradient descent.
 
-# Bias-Variance Trade-off
+# Bias-Variance
+
+* A model will generally have three sources of error: bias, variance, and irreducible. 
+
+* The irreducible error reflects the noise in the data and cannot be removed.
+
+* The bias reflects the error between a model and the solution predicted on infinite training data.
+
+* The variance reflects the error between the model and data different to training.
+
+# Bias-Variance Tradeoff
+
+* The bias therefore reflects the models bias towards a solution (e.g. linear/hyperbolic) 
+
+* The variance measures specialisation against the training data.
+
+* If we add more parameters we make the model more complex. 
+
+* Generally, the bias-variance errors follow inverse complexity.
+
+* Well-fitted models aim for the "sweet spot".
+
+# Bias-Variance Tradeoff
+
+![The bias-variance tradeoff visualised](./images/biasvariance.png)
+Image sourced from [http://scott.fortmann-roe.com/docs/BiasVariance.html](http://scott.fortmann-roe.com/docs/BiasVariance.html)
+
+# Goal of Regularisation
+
+* The goal of regularisation is often to control the bias-variance trade-off.
+
+* We might penalise complexity to reduce overfitting (high variance).
+
+* Conversely, we might increase complexity to decrease underfitting (low bias).
 
 # Mathematical Regularisation
 
+* Mathematical regularisation involves adding a constraint to the loss function.
+
+* This generally involves adding a functional penalisation to a Langrangian: $$ L(f, \vec{x}) + \lambda E[f]$$
+
+* This constrains the problem to minimising the Lagrangian over its domain subject to the conditions posed by the functional.
+
+* In Deep Learning the function is usually considered to be specified by weights and biases and the reguluriser is often a function of these.
+
 # Explicit vs Implicit Regularisation
+
+* Explicit regularisation typically refers to a mathematical regularisation.
+
+* The loss function is augmented with an additional term to just the objective.
+
+* We will refer to loss with $L(f, \vec{x}; W, b)$ and objectives with $E[f, \vec{x}; W, b]$.
+
+* Implicit regularisation typically refers to some computational technique to improve performance.
 
 # Weight Penalty Regularisation
 
+* The weight penalty regularisation aims to reduce model complexity by penalising weights.
+
+* The loss function is augmented by: $$L[f, \vec{x}; W, b] = E[f, \vec{x}; W, b] + \sum_{w\inW,b}\vert w \vert_i$$ 
+
+* The common choices for the i-norm are: 1 (sum of absolute values), 2 (sum of square values), $\infty$ (maximal value).
+
+* Each of these performs slightly differently but they all reduce the amount of weight in the system.
+
+* The idea is that the weights that are able to grow are maximally efficient.
+
 # Distribution Penalty Regularisation
+
+* A probabilty distribution with high entropy can be considered complex.
+
+* When a model outputs a probability distribution we can regularise against the entropy: $$ L[f, \vec{x}; W, b] = E[f, \vec{x}; W, b] + \sum_{x\in\text{data}}p(x) \log(p(x))$$
+
+* This reduces the entropy and thus finds a minimal probablitistic interpretation of the data.
 
 # Drop-out Regularisation
 
+* Drop-out is an implicit regularisation method to help with gradient descent.
+
+* Gradient descent methods are prone to having vanishing gradients (gradients go to zero) or exploding gradients (gradients become unbounded).
+
+* This is particularly a problem with recurrent neural networks.
+
+* It can be solved by only updating a fraction of the weights each time step.
+
+* This tends to enforce sparsity among the weights. 
+
 # Early stopping
+
+* A training routine tends towards overfitting (adding variance error) the longer it is trained.
+
+* Many loss functions such as cross-entropy can be indefinitely trained.
+
+* To avoid overfitting we can simply stop the routine early.
+
+* A good way to do this is to track the loss of the training and validation set and stop when they diverge.
 
 # Data Augmentation
 
+* Machine learning models benefit from having a lot of data.
+
+* This data isn't always available; but sometimes we know the process which generates it.
+
+* Data augmentation involves using the existing dataset (and/or a distribution) to generate new samples.
+
+* Generative models and Generative Adverserial Networks are good at this.
+
+* Its a dangerous game; you might learn the wrong things!
+
 # Label Smoothing
+
+* When performing a classification task we are regressing onto discrete variables.
+
+* These are represented by the Dirac-Delta function which is impossible to learn.
+
+* Instead we use the ``softmax`` function to convert outputs into a probability distribution.
+
+* These can be compared to `onehotencoding` of the data in the loss function.
+
+# 
+
+* Softmax of an output vector $u_i$ is defined as the vector: $$v_i = \frac{\exp(u_i)}{\sum_j \exp(u_j)}$$
+
+* `onehotencode` takes a datapoint and converts into a bitarray denoting where it is found in the dataset: `onehot(x,d) = x .== d`
 
 # Batch Normalisation
 
+* Vanishing and exploding gradients often force output vectors to diverge.
+
+* We can combat this by insisting that output vectors have manageable statistics.
+
+* We typically normalise a subset of layers to have a fixed mean and variance.
+
+* This can be seen as fixing the expansion point of the distribution and thus forcing the gradient to be stable.
+
 # Regularisation Summary
+
 
 # Building a network from scratch
 
-# Custom Type
+* We have now developed quite an extensive set of tools.
 
-# Feed-forward functions
+* We know the general structure of a network.
+
+* We have a powerful method of training that structure to perform a task.
+
+* We have a toolbox to ensure that our training captures the real world.
+
+* We are ready to build our own generic networks.
 
 # Zygote Differentation
 
+* The heart of machine learning is backpropogation. We need to differentiate.
+
+* We can differentiate numerically but this is expensive (especially for many-to-many functions).
+
+* Better to use automatic differentation.
+
+# Zygote Differentation
+
+* Reverse mode automatic differentation is provided through the ``gradient(f,...)`` call in the `Zygote` package.
+
+* It is flexible and can take arbitrary sets of parameters.
+
+* The parameters themselves can be ``structs`` allowing differentation through custom types.
+
 # Zygote Pitfalls
  
+* Zygote is very convenient but it is not magic.
+
+* It is unstable when calling gradients recursively: Hessians need a different method.
+
+* Not all functions are efficiently optimised yet. It might take a long time to compile the gradient.
+
+# Custom Type
+
+* We now need a custom type for our neural network. 
+
+* We want each layer to contain: weights, biases, and an activation function.
+
+* We also need these fields to be mutable because the weights will change.
+
+* We can specify all of this with an in/out dimension and an activation.
+
+#
+
+```{julia}
+ramp(x) = x * (x > 0)
+mutable struct ANN
+	W::Matrix{Float32}
+	b::Vector{Float32}
+	f
+	function ANN(dimin, dimout; activation=tanh)
+		weights = rand(dimout, dimin) .- 0.5 # random initialisation of weights and biases
+		biases = zeros(dimout) 
+		new(weights, biases, activation)
+	end
+end
+```
+
+# Feed-forward functions
+
+* We now need a way to transform inputs into outputs
+
+* This can be achieved with a feed-forward function:
+
+```{julia}
+function ff(lyr::ANN, input)
+	return lyr.f.(lyr.W * input .+ lyr.b)
+end
+```
+
+* Coupled with a loss function we can differentiate through these layers.
+
 # Training Routine
 
+* Loss is defined by the model and the data; lets assume the model is a series of layers.
+
+```{julia}
+function L(loss, x, y, model...)
+	out = x
+	for i in 1:length(model)
+		out = ff(model[i], out)
+	end
+	return loss(out, y)
+end
+```
+
+* This can be used for a generic function.
+
 # Training the XOR function
+
+* Let's train the XOR function using 2 layers
+```{julia}
+# define the data and objective
+xordata = [[0,0], [1,1], [0,1], [1,0]]
+labels = [0, 0, 1, 1]
+loss(fx, y) = sum(abs.(fx .- y).^2)
+```
+#
+```{julia}
+using Zygote
+# define the model and gradient
+l1 = ANN(2,2;activation=x->(x * (x > 0)))
+l2 = ANN(2,1)
+trainL(l1, l2) = sum([L(loss, xordata[i], labels[i], l1, l2) for i in rand(1:length(xordata), 4)])
+grad(l1, l2) = Zygote.gradient(trainL, l1, l2)
+```
+#
+```{julia}
+#println( map(i->ff(l2, ff(l1, i)), xordata))
+# train using GD
+eta = 0.001
+for t = 1:1000
+	g = grad(l1, l2)
+	l1.W = l1.W .- eta * g[1][:W]
+	l2.W = l2.W .- eta * g[2][:W]
+end
+
+res = map(i->ff(l2, ff(l1, i)) .> 0.2, xordata)
+println( res) # .> 0.2 * ones(length(res)) )
+```
