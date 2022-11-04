@@ -42,6 +42,7 @@ format:
 # Where are we headed?
 
 ```{julia}
+#| eval: false
 using JLD2, Flux, Images, BSON
 BSON.@load "./models/sharks/conv.bson" convolutional
 data = JLD2.load("./models/sharks/data.jld")
@@ -114,7 +115,8 @@ mosaicview(data["imgs"]...; nrow=1)
 using Plots, Random
 data = randexp(120)
 bars = collect(1:length(data)) ./ length(data)
-plot(data, bars; st=:bar, title="CDF of Empirical Distribution", label=false)
+plot(data, bars; st=:bar, title="CDF of Empirical Distribution", label=false,
+     size=(400,200))
 plot!(data, zeros(length(data)); st=scatter, markersize=3, label="Data")
 ```
 # Kernel Density Estimation
@@ -130,7 +132,8 @@ plot!(data, zeros(length(data)); st=scatter, markersize=3, label="Data")
 ker(x, d; sig=1) = exp(-(x - d)^2/sig^2);
 kde(x) = sum(i -> ker(x, i), data);
 xrange = minimum(data):0.01:maximum(data);
-plot(xrange, kde.(xrange); title="Estimated PDF of Distribution", label=false);
+plot(xrange, kde.(xrange); title="Estimated PDF of Distribution", label=false,
+     size=(300,150));
 plot!(data, zeros(length(data)); st=scatter, markersize=3, label="Data")
 ```
 
@@ -327,7 +330,8 @@ W = (inv(x*x') * (x*y'))';
 
 ```{julia}
 #| echo: false
-plot(x[2,:], vec(W * x); title="Linear Regression", st=:line, label="Regression Fit")
+plot(x[2,:], vec(W * x); title="Linear Regression", st=:line, label="Regression Fit",
+     size=(400, 250))
 plot!(x[2,:], vec(y); st=:scatter, label="Data")
 ```
 
