@@ -6,11 +6,9 @@ engine: jupyter
 execute:
   echo: true
 format:
-  revealjs:
-    slide-number: true
-    theme: serif
-    chalkboard: true 
-    incremental: true
+  beamer:
+    keep-tex: true
+    monofont: "JuliaMono"
 ---
 
 # Brain Modelling.
@@ -20,6 +18,129 @@ format:
 * Deep Learning is a branch of *theoretical neuroscience* which aims to model brain function and development.
 
 * It is therefore useful to understand some modelling results from theoretical neuroscience.
+
+* We will start by covering some basic brain biology.
+
+# The Brain
+
+* A common view is that the brain is a statistical model.
+
+* Takes input as sensory data and output as thoughts/muscle movements/etc.
+
+* A good base to develop models on but the brain is *incredibly* complex and models are *simple*. 
+
+* At a basic level it consists of $\approx 10^9$ specialised cells called *neurons*.
+
+* These neurons signal with each other to perform computations.
+
+* Computations are often localised in brain regions called modules e.g. visual cortex.
+
+# Neurons
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+* Neurons thought of in terms of: soma, axon, dendrite.
+
+* Soma is the cell body.
+
+* Axon is a long protrusion connecting to other cells.
+
+* Dendrites connect to axons of other cells and integrate signals.
+
+:::
+
+::: {.column width="50%"}
+
+![Neuron Anatomy](./images/neuron_anatomy.png){#neurone}
+
+:::
+
+::::
+
+# Membrane Voltage
+
+* Neurons regulate themselves through a membrane voltage.
+
+* This is typically measued in mV and a common baseline is -55mV.
+
+* The voltage is controlled by gated ionic channels: Na, K, etc.
+
+* The membrane voltage can be regulated by current input.
+
+# Spiking
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+* Spiking, or an *action potential*, occurs at a threshold membrane voltage. Referred to as "firing".
+
+* It is a runaway reaction of rapid voltage increase: depolarisation.
+
+* Followed by a voltage decrease: hyper polarisation.
+
+* After an action potential there is a refractory period where the neuron cant fire.
+
+:::
+
+::: {.column width="50%"}
+
+![](./images/action_potential.jpg)
+
+:::
+
+::::
+
+# Signals
+
+* An action potential carries this change in voltage down the axon to other cells.
+
+* A neuron can fire many action potentials a second.
+
+* The combined pattern is a signal to other cells e.g. "contract muscle"/"release".
+
+# Firing Patterns
+
+![[Common Firing Patterns](https://www.izhikevich.org/publications/spikes.html)](./images/spiking_patterns.png)
+ 
+# Synapse
+
+* The axon is connected to a dendrite through a synapse.
+
+* When an action potential reaches the synapse it releases charged neurotransmitters into the synaptic cleft.
+
+* These diffuse through the cleft to bind to the dendrite.
+
+* They modulate the dendrites voltage upward (excitatory) or downward (inhibitory).
+
+# Networks
+
+* A neural network is simply the composition of many connected neurons.
+
+* The brain is a large neural network.
+
+* Subdivisions are also networks e.g. auditory cortex, hippocampus etc.
+
+* The inputs to the network and synaptic weights modulate firing patterns of neurons.
+
+* The combined effect is to perform a computation on the inputs.
+
+
+# Networks inspiration
+
+* Reduced models of specific brain networks have been highly successful. *Some* examples:
+
+* Visual system processing: Deep Convolutional Networks.
+
+* Generalised Feed-Forward Networks: Artificial Neural Network (the blueprint).
+
+* Cortical recurrent networks: Hopfield Networks (asscociative memory).
+
+* Visual system development: Optimisation Heuristics (Elastic Net).
+
+* Many more.
 
 # Neuron Modelling
 
@@ -128,7 +249,8 @@ plot(a,b; layout=(2,1), axis=:equal)
 
 # Hodgkin-Huxley Definition
 
-* The differential equations are as follows: $$ C \frac{dv}{dt} = g_K n_1^4 (v_K - v) + g_{Na} n_2^3 n_3 (v_{Na} - v) + g_L(v_L - v) + I(t) \\ \frac{dn}{dt} = \alpha_{n_i}(v)(1-n_i)+\beta_{n_i}(v)n_i $$
+* The differential equations are as follows: $$ C \frac{dv}{dt} = g_K n_1^4 (v_K - v) + g_{Na} n_2^3 n_3 (v_{Na} - v) + g_L(v_L - v) + I(t) $$
+$$ \frac{dn}{dt} = \alpha_{n_i}(v)(1-n_i)+\beta_{n_i}(v)n_i $$
 
 # 
 
@@ -136,11 +258,7 @@ plot(a,b; layout=(2,1), axis=:equal)
 
 * The parameters can be found by fitting to neural voltage data.
 
-# Hodgkin Huxley Fit
-
-![Membrane voltage of giant squid axon (top) against the model prediction (bottom)](./images/hhneuronetrace.png)
-
-[A brief historical perspective: Hodgkin and Huxley: J Physiol. 2012 Jun 1; 590(Pt 11): 2571–2575.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3424716/)
+![[Membrane voltage of giant squid axon (top) against the model prediction (bottom)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3424716/)](./images/hhneuronetrace.png){height="40%"}
 
 # Hybrid Models
 
@@ -156,9 +274,7 @@ plot(a,b; layout=(2,1), axis=:equal)
 
 # Hybrid Model Fit
 
-![Izhekivich model spiking predictions compared to rat cortical neurons](./images/izspike.png)
-
-[Simple Model of Spiking Neurons IEEE Transactions on Neural Networks (2003) 14:1569-1572](https://www.izhikevich.org/publications/spikes.html)	
+![[Izhekivich model spiking predictions compared to rat cortical neurons](https://www.izhikevich.org/publications/spikes.html)](./images/izspike.png){height="60%"}
 
 # Firing Rates
 
@@ -240,7 +356,7 @@ plot(x, f.(x); title="Sigmoid Activation", label=false, xticks=false, xlabel="Me
 #| incremental: true
 x=-2:0.01:2;
 f(x) = tanh(x)
-plot(x, f.(x); title="Tanh Activation", label=false, xticks=false, xlabel="Membrane Voltage", yticks=([-1,0,1], ["", "", "Saturation"]), ylim=(0,1))
+plot(x, f.(x); title="Tanh Activation", label=false, xticks=false, xlabel="Membrane Voltage", yticks=([-1,0,1], ["", "0", "Saturation"]), ylim=(-1,1))
 ```
 
 # Ramp/Rectified Linear Unit (ReLu)
@@ -248,9 +364,9 @@ plot(x, f.(x); title="Tanh Activation", label=false, xticks=false, xlabel="Membr
 ```{julia}
 #| echo: false
 #| incremental: true
-x=-10:0.01:10;
+x=-1:0.01:1;
 f(x) = (x > 0) .* x
-plot(x, f.(x); title="ReLu Activation", label=false, xticks=false, xlabel="Membrane Voltage", yticks=([0,1], ["", "Saturation"]), ylim=(0,1))
+plot(x, f.(x); title="ReLu Activation", label=false, xticks=false, xlabel="Membrane Voltage", yticks=([0,1], ["0", ""]), ylim=(0,1))
 ```
 # Heaviside
 
@@ -259,7 +375,7 @@ plot(x, f.(x); title="ReLu Activation", label=false, xticks=false, xlabel="Membr
 #| incremental: true
 x=-10:0.01:10;
 f(x) = 1.0 .* (x > 0)
-plot(x, f.(x); title="Heaviside (ON/OFF) Activation", label=false, xticks=false, xlabel="Membrane Voltage", yticks=([0,1], ["", "Saturation"]), ylim=(0,1))
+plot(x, f.(x); title="Heaviside (ON/OFF) Activation", label=false, xticks=false, xlabel="Membrane Voltage", yticks=([0,1], ["Off", "On"]), ylim=(0,1))
 ```
 
 # Neural Network Models
@@ -461,18 +577,15 @@ end
 * This is true for any activation function that is monotonic.
 
 # Perception Training.
-:::: {.columns}
-
-::: {.column width="50%"}
 
 ```{julia}
-function train_epoch(domestic, wild, W, b, r, thresh)
-    # class 1
-    for i = 1:(length(domestic[1]) + length(wild[1]))
-        if i <= length(domestic[1])
-            datum = [domestic[1][i], domestic[2][i]]
+function train_epoch(class1, class2, W, b, r, thresh)
+    # class 1 < regression, class 2 > regression
+    for i = 1:(length(class1[1]) + length(class2[1]))
+        if i <= length(class1[1])
+            datum = [class1[1][i], class1[2][i]]
         else
-            datum = [wild[1][i], wild[2][i]]
+            datum = [class2[1][i], class2[2][i]]
         end
         pred = W * datum .+ b
         err = (pred[1] > thresh)
@@ -483,16 +596,6 @@ function train_epoch(domestic, wild, W, b, r, thresh)
     return W, b
 end
 ```
-:::
-
-::: {.column width=50%}
-
-![Perceptron Training on Classes](./images/perceptron_animation.gif)
-
-:::
-
-::::
-
 
 # The XOR problem.
 

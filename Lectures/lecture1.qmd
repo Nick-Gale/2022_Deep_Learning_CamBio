@@ -1,22 +1,17 @@
 ---
 title: "Deep Learning"
-subtitle: "Computing with Metaphorical Brains"
-author: "Nicholas Gale & Stephen Eglen"
+subtitle: "Computing with the metaphorical brain."
+author: "Nicholas Gale and Stephen Eglen"
 engine: jupyter
 execute:
   echo: true
 format:
-  revealjs:
-    slide-number: true
-    theme: serif
-    chalkboard: true 
-    incremental: true
+  beamer:
+    keep-tex: true
+    monofont: "JuliaMono"
 ---
 
-
-
 # Deep Learning.
-
 
 * Deep Learning typically refers to statistical models with many layers.
 
@@ -27,17 +22,22 @@ format:
 * With many parameters and training examples models can achieve super human peformance in *some* tasks.
 
 # The hype
+
 > None of us today know how to get computers to learn with the speed and flexibility of a child. *Andrew Ng, Deep Learning Pioneer*
 
 * The field can appear extremely fast: "ground-breaking" or "state-of-the-art (SOTA/SOA)" are released all the time.
 
 * Be wary of this; it often amounts to adding more compute, parameter tweaking on a reduced dataset, or overfitting.
 
-# 
+# The response
 
 > [Torch.manual_seed(3407) is all you need: On the influence of random seeds in deep learning architectures for computer vision](https://arxiv.org/abs/2109.08203)
 
+* There are often popular satirical responses debunking the hype.
+
 * That aside: the field **does** move incredibly quickly and there **are** amazing and groundbreaking achievements routinely posted.
+
+* Above all the models are *useful* and therefore worth examining.
 
 # Where are we headed?
 
@@ -46,7 +46,7 @@ using JLD2, Flux, Images, BSON
 BSON.@load "./models/sharks/conv.bson" convolutional
 data = JLD2.load("./models/sharks/data.jld")
 pred = Flux.onecold(convolutional(data["batched"]), unique(data["labels"]))
-println(hcat(pred, data["labels"]))
+display(hcat(pred, data["labels"]))
 mosaicview(data["imgs"]...; nrow=1)
 ```
 
@@ -59,295 +59,388 @@ mosaicview(data["imgs"]...; nrow=1)
 5. Developer tools: Flux; PyTorch; Tensorflow.
 6. Developing complex deep learning models.
 
-::: {.notes}
-:::: {.columns}
+# Data
 
-::: {.column width=50%}
+* Data is typically anything we can measure.
 
-1. Mathematical and statistical modelling review
-2. A brief overview of brains, neurons, and neural networks.
-3. A simple implementation of the Hopfield network.
-4. Understanding the perceptron and the multi-layer perceptron through XOR.
-5. Optimisation
-6. Training the MLP to learn XOR
-7. Developing an auto-encoder from scratch.
-:::
+* It often is categorised by a set of real numbers (1.2, -1.4) and units (meters/second, red).
 
-::: {.column width=50%}
+* The quantisation of data is useful because it allows us to perform formal mathematical operations on it.
 
-8. Developing the convolutational and recurrent neural networks from scratch.
-9. Flux: an elegant Julia framework. Pytorch, Tensorflow, Keras.
-10. Variational Autoencoders.
-11. General Adverserial Networks.
-12. Transformers.
-13. Graph Neural Networks.
-14. Critiscm.
-:::
+# Probability
 
-::::
+* Probability is a number we use to characterise the likelihood of an event.
 
+* The probability can be thought of as the proportion of times we expect this event to happen asymptotically. (Debate)
 
-In this course we aim to teach you the fundamentals of Deep Learning and give examples of how it may be applied to computational biology. The learning outcome is to first become familiar with the principles of neural based machine learning before becoming familiar with frameworks to peform it in.
+* The probability of standard a die rolling 1 is 1/6.
 
-:::
+# Distribution
 
-# Models
+* A distribution is the probabilitisc description of *all* possible events.
 
-* A model is a reduced description of reality. 
+* Distributions may be discrete (categorical) or continuous.
 
-* All models are wrong. Some models are useful.
+* All elements in the distribution must integrate to a total probability of 1.
 
-* A model can be in any format: mental, word, computational, or mathematical.
+* A distribution is often parameterised by a series of numbers: $\vec{\beta}$
 
-* Mathematical/Computational models are preferred because they are *precise*.
+# PDFs and CDFs
 
-# Mathematical Model
+* Distributions can be described with a probability density function (PDF) or cummulative density function (CDF): $$CDF(x) = \int_{\infty}^x PDF(y) dy.$$
 
-* A mathematical model is, in its simplest form, a function.
+* We can sample from a distribution using the inverse of the CDF.
 
-* It takes a series of input variables and transforms them into a series of ouput variables.
+* We tend to describe random variables in terms of their distributions: $$X \sim D(\vec{\beta}) $$
 
-* The mathematical structure of the function encodes the "science" between the two variables.
+# Data as a Distribution
 
-* Usually denoted $f(x) = y$, or $f: X \rightarrow Y, x\mapsto y$.
+* We can think of data as being described by a distribution.
 
-# Differential Equations
+* A distribution is therefore a data generating process.
 
-* The most common model format in scientific applications is the differential equation.
+* Each data point (an image, a measurement of velocity) is a random sample from some (potentially unknown distribution)
 
-* The model is specified by the rates of change in its variables:
+# Empirical Distributions
 
-* $$ \frac{\partial y}{\partial \vec{x}} = f(\vec{x}; y) $$
+* We can use data samples to inform us about distributions. 
 
-* It is typically solved by numerical integration (sometimes analytical).
+* The most naive thing to say is that the data *is* the distribution. 
+
+* The distribution is then defined by N data points and the CDF increases by $1/n$ for each data point.
+
+```{julia}
+#| echo: false
+using Plots, Random
+data = randexp(120)
+bars = collect(1:length(data)) ./ length(data)
+plot(data, bars; st=:bar, title="CDF of Empirical Distribution", label=false)
+plot!(data, zeros(length(data)); st=scatter, markersize=3, label="Data")
+```
+# Kernel Density Estimation
+
+* We might also say that each datum represents a kernel probability function.
+
+* The kernel encodes the likelihood of sampling at that point e.g. $N(x,1/n)$.
+
+* The distribution may then be estimated by summing the kernels and normalising by the number of data.
+
+```{julia}
+#| echo: false
+ker(x, d; sig=1) = exp(-(x - d)^2/sig^2);
+kde(x) = sum(i -> ker(x, i), data);
+xrange = minimum(data):0.01:maximum(data);
+plot(xrange, kde.(xrange); title="Estimated PDF of Distribution", label=false);
+plot!(data, zeros(length(data)); st=scatter, markersize=3, label="Data")
+```
 
 # Statistics
 
-* A statistic is simply something that can be measured: data.
+* Data distributions can also be characterised by statistics.
 
-* Statistics are assumed to follow some probability distribution e.g. $X \sim N(0,1)$.
+* Statistics are measurements that can be made on a data set.
 
-* The data are assumed to be *samples* of the probability distribution.
+* They are also known (or can be estimated) for distributions.
 
-* Probability distribution has a given *parameterisation*.
+* The average, variance, standard deviation, quartiles, mode, and median are common examples.
 
-# Statistical Fitting
+* A known distribution can be estimated using statistics: e.g $N_{\text{est}}(\mu = \text{av}, \sigma^2 = \text{var})$ 
 
-* The goal of statistics is to find a good description of data.
+# Central Limit Theorem
 
-* This amounts to choosing a distribution and fitting the parameters to match the distribution and data.
+* Central limit theorem: the mean of a collection of indepedent measurements tends towards a normal distribution.
 
-* Fitting usually means minimising some objective or target function.
+* Let $\{X_i\}^n_{i=1}$ be iid from a distribution with mean $\mu$ and variance $\sigma^2$. 
 
-# Distribution Transformations
+* Suppose $Z = \frac{\sum_i \frac{X_i}{n} - \mu}{\frac{\sigma}{\sqrt{n}}}$. Then, $Z \sim N(0,1)$.
 
-* A distribution can be transformed by a mathematical function. 
+* This is useful for analysing statistics (estimating distributions, regression, etc.)
 
-* If $y = f(x)$ then $Y$ ~ $f(X, W)$. The distribution of Y will be the distribution of X multiplied by the Jacobian of f.
+# Modelling the Real World
 
-* This allows us to augment our model with data. We specify the data being generated from a distribution and examine its transform.
+* A model is a reduced description of real world phenenoma. They are *always* wrong, but sometimes useful.
 
-# Bayesian vs Frequentist.
+* They are used to *explain* and *predict* aspects of that phenenoma.
 
-* Two schools of thought about statistics: Frequentist and Bayesian.
+* They can be words, pictures, mental, mathematical, or algorithmic/computational.
 
-* Frequentist schools assert that the parameters $\beta$ are *fixed*.
+* We like mathematical and computational models because they are *precise* i.e. no ambiguity and falsifiable by experiment.
 
-* Bayesian schools assert that the parameters come from distributions.
+# Mathematical and Computational Models
 
-* We capture this parameter distribution with a *prior*.
+* The general form of a precise model is a functional relationship.
 
-* Priors are updated into *posterior* distribution with new data through Bayes rule.
+* The model (f) takes input (x) and as a black box produces output (y): $y = f(x)$
 
-# Prediction
+* The science (or description) is encoded in the definition of x.
 
-* Prediction is the most valuable component of a statistical model.
+# Statistical Models
 
-* We can predict probability of observing a particular variable from a distribution.
+* We would like to relate our measured data to each other.
 
-* Critically, we can predict likelihood of observations under a given model.
+* We do this by asserting that there is a model between the relevant data.
 
-# Data Fitting: Regression
+* Then, we precisely formulate this model in the form of a mathematical function.
 
-* Regression allows us to relate our independent variables (regressors, covariate, feature) with our dependent variables (data, response, output)
+* We typically manipulate an *indepedent* variable (x) and measure the *depedent* variable (y).
 
-* Usually we aim to find the parameters (Bayesian: distribution) that minimise the mean square error of the response variables.
+* We *assume* with some random error $\epsilon$: $$y_i = f(x_i) + \epsilon$$
 
-* Some simple statistics can inform the quality of the fits e.g. Pearsons Correlation Coefficient.
+# Transformed Distribution
 
-# Data Fitting: Linear Regression
+* We can also query the statistics of the transformed variable (y = f(x)) under the model: $$ F_Y(y(x)) = F_X(x)$$
 
-* Linear regression is the most common form of regression. N regressors are assumed to predict M responses through an $M \times N$ design matrix $W$
+* Differentiating CDFs gives PDFs: $$ \frac{\partial}{\partial x} F_Y(y(x)) = f_X(x)$$  
 
-* $$ \vec{y} = W \vec{x} $$
+* Using the chain rule yields: $$ f_Y(y) = \left|\frac{\partial y}{\partial x}\right|^{-1} f_X(x) $$
 
-#
+# Models are Data Generating
 
-* The 0th component of the X vector is sometimes removed and the parameters associated with it are incorporated into a vector $b$ called the biases: the "intercept". 
+* We can think of a model as a data generating process.
 
-* The W matrix values are called the weights.
+* A measurement is made with some error: it is a sample from a distribution.
 
-* Regression involves minimising the prediction errors on the *known* data and hoping that it generalises.
+* Data is a linearly indepedent collection of measurements. (Central Limit Theorem)
+
+* Model makes predictions by transforming the indepedent measurements. Depedent measurements come from the *true* process.
+
+* Models *often* (not necessarily) take some natural law form of this process e.g. $x(t) = x_0 + vt$
+
+# Parameters and Hyperparameters
+
+* A model is characterised by a series of numbers that are not data.
+
+* These are typically called *parameters* e.g. $v, x_0$ in $x(t) = x_0 + v t$.
+
+* A models parameters may come from a distribution and these are referred to as *hyper-parameters*
+
+* Hyper-parmaters can also refer to parameterisations that are part of the model specification e.g. fitting.
+
+# Estimating Parameters
+
+* We generally use data to try and estimate the parameters of a model.
+
+* This is a procedure known as *fitting*. 
+
+* Fitting typically involves minimising a quantity between predictions and measurements.
+
+# Bayesian Statistics vs Frequentists
+
+* Frequentist statistics assume estimates are true in the limiting value of large data.
+
+* Bayesian statistics assume that an estimate has a probability and data updates the probability via Bayes rule: $$p(\alpha | \text{data}) =\frac{ p( \text{data} | \alpha) p(\alpha) }{\text{data}}$$.
+
+* $p(\alpha | \text{data})$ is the *posterior* probability model after observration
+
+* $p(\alpha)$ encodes the *prior* belief that a parameter $\alpha$ follows a given distribution.
+
+* Bayesian statistics allow us to encode uncertainty into our data and treat our data and parameters as distributions. 
+
+# Model Fits
+
+* A model relates the distribution of the indepedent/depedent variables.
+
+* We also sample these distributions in the form of data.
+
+* We generally want to minimise some quantity error quantity between these two.
+
+* For example this could be minimising least squared error, or likelihood maximisation under a given model.
+
+# Goodness of fit
+
+* To assess the goodness of fit we usually look at the difference between these distributions.
+
+* Most often this is done through the covariance e.g. $$ r^2_{\text{Pearsons}} = \frac{\text{Cov}(X,Y)}{\sigma_X \sigma_Y}$$
+
+* Be careful with goodness of fit. Pearsons for example will only be meaningful for linear regression.
+
+* Many other measures, some penalise number of parameters e.g. Akaike Information Criterion.
+
+# Linear Regression
+
+* Linear regression is the most common form of model fitting. 
+
+* It assumes that the *parameters* are linear in the model.
+
+* The regressors (depedent variables) may still be non linear e.g. $y = \beta_0 + \beta_1 x + \beta_2 x^2$
+
+# Linear Regression Format
+
+* The general form of a linear model is: $$ \vec{Y} = W \vec{X} $$
+
+* $\vec{X}$ is an N dimensional vector of features (indepedent variables; $x_i$, $x_i^2$, $x_ix_j$ etc.)
+
+* $\vec{Y}$ is an M dimensional vector of responses (dependent variables)
+
+* $W$ is a design matrix which relates the regressors (indepdent variables) to the observables (dependent variables).
+
+# Weights and Biases
+
+* The 0th component of the design matrix often incorporates the 0 reponse variable.
+
+* This is the "intercept" of the model and when designed this way the feature vector is prepended with a 1 (a valid constant regressor).
+
+* This can also be taken out and referred to as the biases: $$ Y = W X + b$$.
+
+* Weights and biases are a common way to refer to the parameters of the model.
+
+* Biases indicates how biased each response variable is.
+
+# Linear Regression Error
+
+* We need a procedure to perform the fit i.e. we need an error function.
+
+* We choose the error between an observered regressor $Y_j$ predicted regressor $\hat{Y}_j = W X_n + B$ as the least squared error: $$ e_j = \text{sum}((\hat{Y_j}-Y_j).^2) $$ 
+
+* The total error which we want to minimise is: $$E = \sum_j e_j$$ $$E = \sum_j \text{sum}(W X_j - Y_j).^2$$
+
+# Minimise the error.
+
+* Consider the minimisation problem with just one data point.
+
+* This has a quadratic function form $f(x,y) = (Wx-y)^2$.
+
+* We can reliably get to the "bottom" of a quadratic using basic calculus setting the gradient to zero.
+
+* The gradient here is easy to calculate: $2(Wx - y)(Wx-y)^T$
+
+# Total error
+
+* The total error is linear in each of the data points: we can just sum up the minmima simultaneously.
+
+* For a matrix of feature vectors $\textbf{X}$ and responses $\textbf{Y}$ we have: $$E =  (\textbf{X} W - \textbf{Y})^2$$ $$\frac{dE}{dw} = 2(\textbf{X}w - \textbf{W})(\textbf{X}W - \textbf{Y})^T = 0$$ $$ W = (\textbf{X}^T \textbf{X})^{-1} \textbf{X}^T \textbf{Y} $$
+
+* This is the optimal weights to minimise the mean squared error. 
+
+# Example
+```{julia}
+#| echo: false
+using LinearAlgebra, Plots
+```
+
+```{julia}
+#| echo: true
+x = hcat(ones(50), rand(50))';
+y = [1 2] * x .+ 0.04 * rand(1, size(x)[2]);
+W = (inv(x*x') * (x*y'))';
+```
+
+```{julia}
+#| echo: false
+plot(x[2,:], vec(W * x); title="Linear Regression", st=:line, label="Regression Fit")
+plot!(x[2,:], vec(y); st=:scatter, label="Data")
+```
+
+# Nonlinear Regression
+
+* Nonlinear regression allows the model to be non-linear in the parameters e.g. $$ f(x; \alpha, \beta) = \frac{x^n}{\alpha x^n + \beta^2} $$.
+
+* Nonlinear regression is generally more difficult to interpret: careful with goodness of fits.
+
+* A common non-linear function we want to fit is the logistic function.
+
+# Logistic Function
+
+* The logistic function is the solution to logistic equation often parameterised as: $$ p(x; \mu, \sigma) = \frac{1}{1 + \exp\left(\frac{\mu-x}{\sigma}\right)} $$
+
+* It typically is interpreted to give a probability that is used to classify a variable.
+
+* It comes up often in nature e.g. the firing response of a neuron.
+
+* The logit is the inverse of the logistic function.
+
+# Logistic Regression
+
+* Logistic regression attempts to estimate the parameters of the logistic function.
+
+* Suppose $y \in \{0,1\}$ and p(x) gives the probability of y. The cross entropy of the ith datapoint is defined as: $$-y_i \ln(p(x_i)) - (1-y_i) \ln(1-p(x_i))$$
+
+* It is zero if and only if all predictions are corrected. Otherwise it measures the entropy (think, disarray) between the two distributions.
+
+* The parameters that minimise the cross-entropy are the best fit and are solved numerically through *gradient descent*; covered later.
 
 # Regression, Classification, and Generation
 
-* Three common tasks that a statistical model may be required to perform are: regression, classification, and generation.
+* Suppose that we have fitted our statistical model. The utility is in its *prediction*.
 
-* In reality; these are all just prediction tasks. They are typically referred to as follows.
+* The predictions are all technically regressions but are thought of in three categeries: regression, classification, and generation.
 
-# 
+* Regression is the model output given some known choice of independent variable.
 
-* *Regression*: predicting a response given input data.
+* Classification is the discrete model ouput (often the maximum probability) representing a category.
 
-* *Classification*: predicting a class label given a input.
+* Generation is the model output for some random (unseen) variable in the input space.
 
-* *Generation*: predicting a response given random input.
+# Data Preprocessing
 
-# Relation to Deep Learning
+* Often we find ourselves *exploring* data before we generate models on it.
 
-* Deep Learning models are nothing more than statistical models with a structure and many parameters.
+* There are many useful techniques that can be applied to data.
 
-* They are trained to match a distribution which come in the form of data.
+* Noise reduction is an example of *data cleaning*.
 
-* The model and the empirical distribution are highly non-linear and complex.
+* Clustering is a form of *unsupersived learning*.
 
-* *BUT* there is no prinicipal difference.
+* Principal Component Analysis is a form of *dimensionality reduction*.
 
-# The Brain
+# Clustering
 
-* A common view is that the brain is a statistical model.
+* Clustering involves partitioning a dataset into a series of different groups.
 
-* Takes input as sensory data and output as thoughts/muscle movements/etc.
+* This is generally done without labels and involves simple operations on the raw data.
 
-* A good base to develop models on.
+* Clustering algorithms are themselves powerful statistical models but they wont be covered in this course.
 
-# Basic Biology
+* Common algorithims: `k-means` and `t-sne`.
 
-* The brain is *incredibly* complex. 
+# Dimensionality Reduction
 
-* At a basic level it consists of $\approx 10^9$ specialised cells called *neurons*.
+* Often data is very high-dimensional but these dimensions dont convey much information.
 
-* These neurons signal with each other to perform computations.
+* Dimensionality reduction is a change of variables that captures most of the information with just a few variables.
 
-* Computations are often localised in brain regions called modules e.g. visual cortex.
+* This can drastically simplify models.
 
-# Neurons
+# Principal Component Analysis
 
-:::: {.columns}
+* Principal Component Analysis is a very popular dimension reduction technique.
 
-::: {.column width="50%"}
+* It works by transforming the variables into a maximal variance encoding.
 
-* Neurons thought of in terms of: soma, axon, dendrite.
+* This is achieved by eigenvalue decomposition of the covariance matrix.
 
-* Soma is the cell body.
+* The principal eigenvector contains the most variance, and so on. 
 
-* Axon is a long protrusion connecting to other cells.
+# Learning
 
-* Dendrites connect to axons of other cells and integrate signals.
+* Learning in the context of statistics refers to correctly parameterising a model.
 
-:::
+* It is generally an iterative process where data is repeatedly presented to a learning algorithm.
 
-::: {.column width="50%"}
+* It is usually described as unsupervised when the data has not been "tagged" and supervised when it has.
 
-![Neuron Anatomy](./images/neuron_anatomy.png){#neurone}
+* In supervised learning we know the "right" answer and can therefore construct a reasonable sense of error e.g. least squares.
 
-:::
+* Clustering is unsupervised; linear regression is supervised.
 
-::::
+# Deep Learning?
 
-# Membrane Voltage
+* This has been a lot of general statistics.  What does it have to do with Deep Learning?
 
-* Neurons regulate themselves through a membrane voltage.
+* At the heart of all machine learning is distribution matching.
 
-* This is typically measued in mV and a common baseline is -55mV.
+* Deep learning is just a powerful class of general non-linear statistical models.
 
-* The voltage is controlled by gated ionic channels: Na, K, etc.
+* The model format takes inspiration from a physical structure (like most models) - the brain.
 
-* The membrane voltage can be regulated by current input.
-
-# Spiking
-
-:::: {.columns}
-
-::: {.column width="50%"}
-
-* Spiking, or an *action potential*, occurs at a threshold membrane voltage. Referred to as "firing".
-
-* It is a runaway reaction of rapid voltage increase: depolarisation.
-
-* Followed by a voltage decrease: hyper polarisation.
-
-* After an action potential there is a refractory period where the neuron cant fire.
-
-:::
-
-::: {.colum width="50%"}
-
-![Neurone Firing](./images/action_potential.jpg)
-
-:::
-
-::::
-
-# Signals
-
-* An action potential carries this change in voltage down the axon to other cells.
-
-* A neuron can fire many action potentials a second.
-
-* The combined pattern is a signal to other cells e.g. "contract muscle"/"release".
-
-# Firing Patterns
-
-![Common Firing Patterns](./images/spiking_patterns)
-Image taken from [https://www.izhikevich.org/publications/spikes.html](https://www.izhikevich.org/publications/spikes.html).
- 
-# Synapse
-
-* The axon is connected to a dendrite through a synapse.
-
-* When an action potential reaches the synapse it releases charged neurotransmitters into the synaptic cleft.
-
-* These diffuse through the cleft to bind to the dendrite.
-
-* They modulate the dendrites voltage upward (excitatory) or downward (inhibitory).
-
-# Networks
-
-* A neural network is simply the composition of many connected neurons.
-
-* The brain is a large neural network.
-
-* Subdivisions are also networks e.g. auditory cortex, hippocampus etc.
-
-* The inputs to the network and synaptic weights modulate firing patterns of neurons.
-
-* The combined effect is to perform a computation on the inputs.
-
-
-# Networks inspiration
-
-* Reduced models of specific brain networks have been highly successful. *Some* examples:
-
-* Visual system processing: Deep Convolutional Networks.
-
-* Generalised Feed-Forward Networks: Artificial Neural Network (the blueprint).
-
-* Cortical recurrent networks: Hopfield Networks (asscociative memory).
-
-* Visual system development: Optimisation Heuristics (Elastic Net).
-
-* Many more.
+* We will go over this physical inspiration in the following lecture.
 
 # Summary
 
-* Mathematical models give physical description of real world.
+* Data is the entry point of all sciences.
 
-* Statistical models relate data with mathematical models.
+* Models are precise and experimentally falsifiable relationships between data.
 
-* Statistical models are fit and then used to predict.
+* Models are used for prediction and explanation.
 
-* The brain is a large statistical model composed of primary units of neurons in a network.
-
-* Reduced models of brain networks perform well on specific tasks.
-
+* Deep Learning models are complex non-linear statistical models inspired by the brain.
