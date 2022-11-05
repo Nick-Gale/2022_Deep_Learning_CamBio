@@ -1,0 +1,353 @@
+---
+title: "Deep Learning"
+subtitle: "Computing with Metaphorical Brains"
+author: "Nicholas Gale & Stephen Eglen"
+engine: jupyter
+execute:
+  echo: true
+format:
+  revealjs:
+    slide-number: true
+    theme: serif
+    chalkboard: true 
+    incremental: true
+---
+
+
+
+# Deep Learning.
+
+
+* Deep Learning typically refers to statistical models with many layers.
+
+* The layers are composed of computational units called neurons.
+
+* The architecture of the models is inspired by neural architectures.
+
+* With many parameters and training examples models can achieve super human peformance in *some* tasks.
+
+# The hype
+> None of us today know how to get computers to learn with the speed and flexibility of a child. *Andrew Ng, Deep Learning Pioneer*
+
+* The field can appear extremely fast: "ground-breaking" or "state-of-the-art (SOTA/SOA)" are released all the time.
+
+* Be wary of this; it often amounts to adding more compute, parameter tweaking on a reduced dataset, or overfitting.
+
+# 
+
+> [Torch.manual_seed(3407) is all you need: On the influence of random seeds in deep learning architectures for computer vision](https://arxiv.org/abs/2109.08203)
+
+* That aside: the field **does** move incredibly quickly and there **are** amazing and groundbreaking achievements routinely posted.
+
+# Where are we headed?
+
+```{julia}
+using JLD2, Flux, Images, BSON
+BSON.@load "./models/sharks/conv.bson" convolutional
+data = JLD2.load("./models/sharks/data.jld")
+pred = Flux.onecold(convolutional(data["batched"]), unique(data["labels"]))
+println(hcat(pred, data["labels"]))
+mosaicview(data["imgs"]...; nrow=1)
+```
+
+# Course Outline
+
+1. Mathematical and statistical modelling.
+2. Brain modelling.
+3. Simple neural networks and what they mean.
+4. Developing primitive networks from scratch.
+5. Developer tools: Flux; PyTorch; Tensorflow.
+6. Developing complex deep learning models.
+
+::: {.notes}
+:::: {.columns}
+
+::: {.column width=50%}
+
+1. Mathematical and statistical modelling review
+2. A brief overview of brains, neurons, and neural networks.
+3. A simple implementation of the Hopfield network.
+4. Understanding the perceptron and the multi-layer perceptron through XOR.
+5. Optimisation
+6. Training the MLP to learn XOR
+7. Developing an auto-encoder from scratch.
+:::
+
+::: {.column width=50%}
+
+8. Developing the convolutational and recurrent neural networks from scratch.
+9. Flux: an elegant Julia framework. Pytorch, Tensorflow, Keras.
+10. Variational Autoencoders.
+11. General Adverserial Networks.
+12. Transformers.
+13. Graph Neural Networks.
+14. Critiscm.
+:::
+
+::::
+
+
+In this course we aim to teach you the fundamentals of Deep Learning and give examples of how it may be applied to computational biology. The learning outcome is to first become familiar with the principles of neural based machine learning before becoming familiar with frameworks to peform it in.
+
+:::
+
+# Models
+
+* A model is a reduced description of reality. 
+
+* All models are wrong. Some models are useful.
+
+* A model can be in any format: mental, word, computational, or mathematical.
+
+* Mathematical/Computational models are preferred because they are *precise*.
+
+# Mathematical Model
+
+* A mathematical model is, in its simplest form, a function.
+
+* It takes a series of input variables and transforms them into a series of ouput variables.
+
+* The mathematical structure of the function encodes the "science" between the two variables.
+
+* Usually denoted $f(x) = y$, or $f: X \rightarrow Y, x\mapsto y$.
+
+# Differential Equations
+
+* The most common model format in scientific applications is the differential equation.
+
+* The model is specified by the rates of change in its variables:
+
+* $$ \frac{\partial y}{\partial \vec{x}} = f(\vec{x}; y) $$
+
+* It is typically solved by numerical integration (sometimes analytical).
+
+# Statistics
+
+* A statistic is simply something that can be measured: data.
+
+* Statistics are assumed to follow some probability distribution e.g. $X \sim N(0,1)$.
+
+* The data are assumed to be *samples* of the probability distribution.
+
+* Probability distribution has a given *parameterisation*.
+
+# Statistical Fitting
+
+* The goal of statistics is to find a good description of data.
+
+* This amounts to choosing a distribution and fitting the parameters to match the distribution and data.
+
+* Fitting usually means minimising some objective or target function.
+
+# Distribution Transformations
+
+* A distribution can be transformed by a mathematical function. 
+
+* If $y = f(x)$ then $Y$ ~ $f(X, W)$. The distribution of Y will be the distribution of X multiplied by the Jacobian of f.
+
+* This allows us to augment our model with data. We specify the data being generated from a distribution and examine its transform.
+
+# Bayesian vs Frequentist.
+
+* Two schools of thought about statistics: Frequentist and Bayesian.
+
+* Frequentist schools assert that the parameters $\beta$ are *fixed*.
+
+* Bayesian schools assert that the parameters come from distributions.
+
+* We capture this parameter distribution with a *prior*.
+
+* Priors are updated into *posterior* distribution with new data through Bayes rule.
+
+# Prediction
+
+* Prediction is the most valuable component of a statistical model.
+
+* We can predict probability of observing a particular variable from a distribution.
+
+* Critically, we can predict likelihood of observations under a given model.
+
+# Data Fitting: Regression
+
+* Regression allows us to relate our independent variables (regressors, covariate, feature) with our dependent variables (data, response, output)
+
+* Usually we aim to find the parameters (Bayesian: distribution) that minimise the mean square error of the response variables.
+
+* Some simple statistics can inform the quality of the fits e.g. Pearsons Correlation Coefficient.
+
+# Data Fitting: Linear Regression
+
+* Linear regression is the most common form of regression. N regressors are assumed to predict M responses through an $M \times N$ design matrix $W$
+
+* $$ \vec{y} = W \vec{x} $$
+
+#
+
+* The 0th component of the X vector is sometimes removed and the parameters associated with it are incorporated into a vector $b$ called the biases: the "intercept". 
+
+* The W matrix values are called the weights.
+
+* Regression involves minimising the prediction errors on the *known* data and hoping that it generalises.
+
+# Regression, Classification, and Generation
+
+* Three common tasks that a statistical model may be required to perform are: regression, classification, and generation.
+
+* In reality; these are all just prediction tasks. They are typically referred to as follows.
+
+# 
+
+* *Regression*: predicting a response given input data.
+
+* *Classification*: predicting a class label given a input.
+
+* *Generation*: predicting a response given random input.
+
+# Relation to Deep Learning
+
+* Deep Learning models are nothing more than statistical models with a structure and many parameters.
+
+* They are trained to match a distribution which come in the form of data.
+
+* The model and the empirical distribution are highly non-linear and complex.
+
+* *BUT* there is no prinicipal difference.
+
+# The Brain
+
+* A common view is that the brain is a statistical model.
+
+* Takes input as sensory data and output as thoughts/muscle movements/etc.
+
+* A good base to develop models on.
+
+# Basic Biology
+
+* The brain is *incredibly* complex. 
+
+* At a basic level it consists of $\approx 10^9$ specialised cells called *neurons*.
+
+* These neurons signal with each other to perform computations.
+
+* Computations are often localised in brain regions called modules e.g. visual cortex.
+
+# Neurons
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+* Neurons thought of in terms of: soma, axon, dendrite.
+
+* Soma is the cell body.
+
+* Axon is a long protrusion connecting to other cells.
+
+* Dendrites connect to axons of other cells and integrate signals.
+
+:::
+
+::: {.column width="50%"}
+
+![Neuron Anatomy](./images/neuron_anatomy.png){#neurone}
+
+:::
+
+::::
+
+# Membrane Voltage
+
+* Neurons regulate themselves through a membrane voltage.
+
+* This is typically measued in mV and a common baseline is -55mV.
+
+* The voltage is controlled by gated ionic channels: Na, K, etc.
+
+* The membrane voltage can be regulated by current input.
+
+# Spiking
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+* Spiking, or an *action potential*, occurs at a threshold membrane voltage. Referred to as "firing".
+
+* It is a runaway reaction of rapid voltage increase: depolarisation.
+
+* Followed by a voltage decrease: hyper polarisation.
+
+* After an action potential there is a refractory period where the neuron cant fire.
+
+:::
+
+::: {.colum width="50%"}
+
+![Neurone Firing](./images/action_potential.jpg)
+
+:::
+
+::::
+
+# Signals
+
+* An action potential carries this change in voltage down the axon to other cells.
+
+* A neuron can fire many action potentials a second.
+
+* The combined pattern is a signal to other cells e.g. "contract muscle"/"release".
+
+# Firing Patterns
+
+![Common Firing Patterns](./images/spiking_patterns)
+Image taken from [https://www.izhikevich.org/publications/spikes.html](https://www.izhikevich.org/publications/spikes.html).
+ 
+# Synapse
+
+* The axon is connected to a dendrite through a synapse.
+
+* When an action potential reaches the synapse it releases charged neurotransmitters into the synaptic cleft.
+
+* These diffuse through the cleft to bind to the dendrite.
+
+* They modulate the dendrites voltage upward (excitatory) or downward (inhibitory).
+
+# Networks
+
+* A neural network is simply the composition of many connected neurons.
+
+* The brain is a large neural network.
+
+* Subdivisions are also networks e.g. auditory cortex, hippocampus etc.
+
+* The inputs to the network and synaptic weights modulate firing patterns of neurons.
+
+* The combined effect is to perform a computation on the inputs.
+
+
+# Networks inspiration
+
+* Reduced models of specific brain networks have been highly successful. *Some* examples:
+
+* Visual system processing: Deep Convolutional Networks.
+
+* Generalised Feed-Forward Networks: Artificial Neural Network (the blueprint).
+
+* Cortical recurrent networks: Hopfield Networks (asscociative memory).
+
+* Visual system development: Optimisation Heuristics (Elastic Net).
+
+* Many more.
+
+# Summary
+
+* Mathematical models give physical description of real world.
+
+* Statistical models relate data with mathematical models.
+
+* Statistical models are fit and then used to predict.
+
+* The brain is a large statistical model composed of primary units of neurons in a network.
+
+* Reduced models of brain networks perform well on specific tasks.
+

@@ -1,0 +1,20 @@
+
+---
+title: "test of julia"
+author: "SJE"
+engine: jupyter
+execute:
+  echo: true
+format:
+  beamer:
+    keep-tex: true
+    monofont: "JuliaMono"
+---
+
+## Test slide
+
+Some text with unicode `>> α ϐ ∈ <<` here
+
+```{julia} 
+for i ∈ 20:22 println(i) end
+```

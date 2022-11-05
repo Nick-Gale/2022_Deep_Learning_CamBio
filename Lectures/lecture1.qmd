@@ -47,7 +47,7 @@ using JLD2, Flux, Images, BSON
 BSON.@load "./models/sharks/conv.bson" convolutional
 data = JLD2.load("./models/sharks/data.jld")
 pred = Flux.onecold(convolutional(data["batched"]), unique(data["labels"]))
-display(hcat(pred, data["labels"]))
+display(hcat(pred[1:5], data["labels"][1:5]))
 mosaicview(data["imgs"]...; nrow=1)
 ```
 
@@ -110,14 +110,23 @@ mosaicview(data["imgs"]...; nrow=1)
 
 * The distribution is then defined by N data points and the CDF increases by $1/n$ for each data point.
 
+#
+
 ```{julia}
 #| echo: false
+#| fig-width: 1
 using Plots, Random
-data = randexp(120)
+data = sort(randexp(120))
 bars = collect(1:length(data)) ./ length(data)
+<<<<<<< HEAD
 plot(data, bars; st=:bar, title="CDF of Empirical Distribution", label=false,
      size=(400,200))
 plot!(data, zeros(length(data)); st=scatter, markersize=3, label="Data")
+=======
+plot(data, bars; st=:bar, title="CDF of Empirical Distribution", label=false)
+plot!(data, bars; st=:line, label=false)
+plot!(data, zeros(length(data)); st=:scatter, markersize=3, label="Data")
+>>>>>>> 71a55ba (image fixes)
 ```
 # Kernel Density Estimation
 
@@ -126,6 +135,8 @@ plot!(data, zeros(length(data)); st=scatter, markersize=3, label="Data")
 * The kernel encodes the likelihood of sampling at that point e.g. $N(x,1/n)$.
 
 * The distribution may then be estimated by summing the kernels and normalising by the number of data.
+
+#
 
 ```{julia}
 #| echo: false
