@@ -1,0 +1,188 @@
+---
+title: "Generative Adverserial Networks"
+subtitle: "Generative Modelling with Neural Networks"
+author: "Nicholas Gale" 
+engine: jupyter
+execute:
+  echo: true
+format:
+  revealjs:
+    keep-tex: true
+    monofont: "JuliaMono"
+---
+
+# Where are we going?
+
+* These cells do not exist
+
+```{julia}
+# Code block to generate cells that do not exist
+```
+
+# What are GANs
+
+* GANs are a generative model of neural networks
+
+* They learn, very effectively, a distributions properties.
+
+* They can then be used to generate (often images) from that distribution.
+
+* Famous examples are style transfer and face generation (Barrack Obama giving a fake speech).
+
+# The Basic Idea
+
+* A GAN is really a composition of two models: a generator and a discriminator.
+
+* The generator is trained to trick the discriminator.
+
+* The discriminator is trained to filter real data from fake.
+
+* The goals are opposed: adversarial.
+
+# Components
+
+* Suppose the data $x \sim \text{Dist}.
+
+* The discriminator $D$ is a function mapping to $\{0, 1}\$.
+
+* The generator $G$ takes a latent vector $z \sim U(0,1)^k$ and generates a vector in $\text{Dist^\prime}: $G(z) = y$.
+
+* The goal: $\text{Dist^\prime} \rightarrow = \text{Dist}$
+
+::: {.notes}
+* We are always interested in some data generating distribution.
+
+* The discriminator needs to be trained to see if the data is real (1) or fake (0)
+
+* The generator needs to trick the discriminator and is a probability distribution from a random variable $Z \sim U(0,1)^k$. 
+
+* The latent space is commonly uniform between 0 and 1. More dimensions are added for complexity.
+
+# Construction
+
+* $G$ and $D$ are just probability transforms: arbitrary.
+
+* Neural networks are common choices.
+
+* We can exploit data structure to inform choices.
+
+# Loss Functions
+
+* The discriminator is acting as a binary classifier.
+
+* The natural loss function is `logitcrossentropy`.
+
+$$ L = -E_{x\in\text{Dist}} [\log(D(x))] - E_{z \in \text{Dist}ˆ\prime}[\log(1-D(G(z))]$$
+
+# Discriminator Loss
+
+* The discriminator aims to minimise the above loss.
+
+* The generator is targeting a vector in the data distribution.
+
+* For labelled data $(x,y)$ this reduces to:
+
+$$ L_D(x, y) = -y * \log(D(x)) - (1 - y) \log(1 - D(x))$$
+
+# Generator Loss
+
+* The generator is aiming to trick the discriminator.
+
+* Natural reward is to flip the classification loss.
+
+* It doesn't need to know the data: this is implicitly learned.
+
+$$ L_G(z) = -\log(D(G(z))) $$
+
+::: {.notes}
+* Implicit learning is good
+
+* You cant just learn the copy function from available data
+:::
+
+# Training
+
+* Training proceeds in a two-step fashion.
+
+* First, batches are presented to the generator and G updated.
+
+* Second, batches are presented to discriminator and D updated.
+
+* Single datum: generator - fake data discriminator - real data discriminator.
+
+# 
+```{julia}
+	# code block for training
+```
+
+# Game Theory
+
+* $G$ and $D$ are playing a two player game.
+
+* This loss function is a min-max game
+
+* Training converges to a Nash equilibrium.
+
+* The global minima of the game is $\text{D} = \text{Dˆ\prime}$
+
+# 
+
+# Instability
+
+* GANs are difficult to train.
+
+* The min-max loss function often saturates: the gradients go to zero.
+
+* This can happen when the discriminator gives an overly confident rejection.
+
+```{julia}
+	# Training saturation
+```
+
+# Fixes
+
+* Adjust learning rate down for the discriminator.
+
+* Change discriminator complexity.
+
+* Apply dropout and other regularisation techniques.
+
+# Mode Collapse
+
+* The generator doesn't know the variability of the data.
+
+* It can produce a very reliable subset which tricks the generator.
+
+* This is known as mode-collapse: the target data is a composition of modes.
+
+#
+
+```{julia}
+	# Mode collapse
+```
+
+# Fixes
+
+* Increase latent size: more degrees of freedom to optimise.
+
+* Modify optimiser and learning schedule: a slower rate helps.
+
+* Regularisation: dropout and normalisation are useful.
+
+# Training Practice
+
+* GANs should be monitored.
+
+* Leverage your visual system: loss, discriminator accuracy, and generated data.
+
+* Generator and discriminator loss should be seperated.
+
+* Real and fake accuracy should be seperated.
+
+# Regularisation
+
+# Spectral Normalisation
+
+# Data Augmentation
+
+# Batch Equalisation
