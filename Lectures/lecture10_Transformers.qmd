@@ -1,0 +1,123 @@
+---
+title: "Generative Adverserial Networks"
+subtitle: "Generative Modelling with Neural Networks"
+author: "Nicholas Gale" 
+engine: jupyter
+execute:
+  echo: true
+format:
+  revealjs:
+    keep-tex: true
+    monofont: "JuliaMono"
+---
+
+# Where are we going?
+
+# Traditional Sequence Analysis
+
+* Sequence analysis has been typically performed by recurrent neural networks.
+
+* Exploding/vanishing gradients from recursion.
+
+* Information decay leading to short memory.
+
+* O(n) complexity in sequence length.
+
+# Some solutions.
+
+* LSTMs: forget gates to preserve information.
+
+* Gated Recurrent Units: similar to LSTM but 
+
+* Other proposals: none ideal, all sequential. 
+
+# Transformers
+
+* Transformers are the latest development in large scale sequence analysis.
+
+* "Attention is all you need" (2016)
+
+* Address many problems with RNNs
+
+* Workhorse behind many "magical" applications e.g. voice assistant and language translation.
+
+# Attention: bare bones
+
+* Transformers leverage the idea of attention: not new.
+
+* Attention is computed between all elements in a sequence.
+
+* Asymettric, weighted relationship between sequence elements.
+
+* All units are considered independently: massive parallelisation.
+
+# Components
+
+* Attention is generally split into structures called heads.
+
+* These are a little bit like features in a CNN.
+
+* An attention head is composed of queries, keys, and values.
+
+# Query
+
+# Key
+
+# Value
+
+# Before.
+
+# Multi-head attention
+
+* Attention models are composed of multiple layers (think CNN)
+
+* Each layer has multiple heads which have different keys and values.
+
+* After attention has been computed the outputs are concatenated.
+
+* This concatentation is passed through a feedfoward layer to impose dimensionality.
+
+# Positional Encoding
+
+* Attention lets us forget sequence order to parallelise computation.
+
+* Sequence orders are important: gene sequence cant be scrambled.
+
+* A positional encoding function is used to inject this order into the learning.
+
+* Typically: 
+
+$$ p_k(i) = cos(i/10000^k) $$
+$$ p_k(i) = sin(i/10000^k) $$
+
+# Encoder
+
+* The encoder is composed of taking a 
+
+
+# Decoder
+
+* The decoder is similarly composed of multihead attention layers.
+
+* The output of the encoder is combined with each layer.
+
+* This generates the output sequence at a given recursion stage.
+
+# Sequence Generation
+
+* Sequences are generated with a start symbol and terminated with a stop symbol.
+
+* The outputs are fed through the network as inputs until stopping.
+
+* The output vector is fixed at an arbitrary length i.e. 512
+
+* Future outputs are masked with `-Inf` to prevent left flowing information: autoregressive.
+# Theory
+
+
+# Loss Functions
+
+# Training
+# Regularisation
+
+# Examples

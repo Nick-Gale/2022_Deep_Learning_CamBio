@@ -1,1 +1,129 @@
-Flux
+---
+title: "Flux"
+subtitle: "A Julia approach to Machine Learning"
+author: "Nicholas Gale" 
+engine: jupyter
+execute:
+  echo: true
+format:
+  revealjs:
+    keep-tex: true
+    monofont: "JuliaMono"
+---
+
+# Building Neural Networks
+
+* Time consuming
+
+* Boilerplate
+
+* Often inefficient
+
+* These imply package
+
+# Flux
+
+* Flux is a Julia package.
+
+* It is hackable, extensible, and provides nice syntatic sugar.
+
+* Relies on `Zygote` which is an automatic differentation package.
+
+# Lecture Outcomes
+
+* Revisit primary concepts: automatic differentation, optimisation, loss functions.
+
+* Grammar of Flux.
+
+* Basic Flux Usage.
+
+* Constructing Neural Networks.
+
+# Loss Functions
+
+* Loss functions allow objective of the network to be found.
+
+* Constructed to measure difference between regressor and datas.
+
+* Common loss functions are MSE and `logitcrossentropy`: many more...
+
+# Differentation
+
+* Backbone of machine learning.
+
+* Newtons method or gradient descent is an optimisation method.
+
+* Can be computed symbolically, numerically, or automatically: $$ \frac{df}{dx} = \lim_{x\rightarrow 0} \frac{f(x+h) - f(x)}{h} $$
+
+# Automatic Differentation
+
+* Define a dual number as: $ d(x) = (x, \epsilon) $.
+
+* By Taylor series the derivative is given by $\epsilon$.
+
+* Julia: operator overload all the usual functions to handle dual numbers.
+
+* Differentation is now arbitrary precision and cheaper to compute.
+
+# Chain Rule and Backpropogation
+
+* Backpropogation is *the* machine learning algorithm.
+
+* Errors are back-propogated through layers of network to give training signal.
+
+* Under the hood: chain rule $$ \frac{\partial F}{\partial x} = \frac{\partial f_1}\frac{\partial f_2} \frac{\partial f2}{\partial f3} \ldots \frac{\partial f_n}{\partial x} $$
+
+# Zygote
+
+* There are extensive automatic differentation packages in Julia: Flux uses Zygote.
+
+* The API call is ``gradient`` and is used in two ways: functions and `do` blocks.
+
+* Each method needs to specify the parameters which will be differentiated through `Params` conversion.
+
+# Zygote Example
+
+```{julia}
+f(x) = tanh.(W .* x)
+W = rand(2,2)
+Params(W)
+
+# a single instance
+dfdw = gradient(()->f(x), Params(W))
+
+# as a function
+dfdx(x) = gradient(
+
+# Optimisation
+
+# Gradient Descent and Momentum
+
+# Stochastic Gradient Descent
+
+# Flux layers
+
+# Chain: Composing a model
+
+# Loss Functions
+
+# Batching
+
+# Data as a vector
+
+# Data as a dimension
+
+# One-Hot Encoding
+
+# Updating parameters
+
+# Training
+
+# Callbacks
+
+# Plotting
+
+# Training an Autoencoder
+
+# Training a CNN
+
+# Training an RNN
