@@ -86,14 +86,16 @@ $$\frac{\partial F}{\partial x} = \frac{\partial f_1}{\partial f_2}\frac{\partia
 # Zygote Example
 
 ```{julia}
-using Flux
 f(x) = sum(tanh.(W .* x))
 W = rand(2,2)
 x = rand(2,1)
+
 # a single instance
-dfdw = gradient(()->f(x), Flux.params(W))
+dfdw = gradient((()->f(x), Params(W))
+
 # as a do block
-g = gradient(Flux.params(W)) do
+
+g = gradient(Params(W)) do
 	f(x)
 end
 ```
@@ -137,6 +139,8 @@ end
 * It provides a non-linearity to allow complex learning manifolds.
 
 * Flux supports all the common functions: `tanh`, `relu`, `σ`, etc.
+
+#
 
 ```{julia}
 #| echo: false

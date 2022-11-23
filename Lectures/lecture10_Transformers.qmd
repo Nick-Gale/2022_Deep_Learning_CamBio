@@ -130,22 +130,37 @@ $$ A(K,Q,V) = \text{softmax}(\frac{K^TQ}{\sqrt{d_k})V $$
 $$ p_k(i) = cos(i/10000^k) $$
 $$ p_k(i) = sin(i/10000^k) $$
 
-# Feed-forward attention.
+# Normalisation and Feed-forward pass.
+
+* The output of the attention head is first layer normalised.
 
 * A feed-foward network is used after attention and positional encoding.
 
-* This transforms the ouput vectors 
+* Each output vector is passed through the FF-network.
+
+* The outputs are then layer normalised.
 
 # Encoder
 
-* The encoder is composed of taking a 
+* The encoder is established with N layers.
 
+* Each layer has a multi-head attention block with a feed-forward network.
+
+* Key and Query embedding sizes are often chosen to partition the vector length.
+
+* The output is a series of vectors which can be optionally merged into a single latent vector.
 
 # Decoder
 
 * The decoder is similarly composed of multihead attention layers.
 
-* The output of the encoder is combined with each layer.
+* The latents of the encoder are combined with each decoder layer.
+
+* This is done by composing the encoder latents with the outputs to create *keys* and *queries*.
+
+* The keys and queries are composed with the values of the output layer *only*.
+
+* These are layer-normalised.
 
 * This generates the output sequence at a given recursion stage.
 
@@ -158,13 +173,20 @@ $$ p_k(i) = sin(i/10000^k) $$
 * The output vector is fixed at an arbitrary length i.e. 512
 
 * Future outputs are masked with `-Inf` to prevent left flowing information: autoregressive.
-# Theory
-
 
 # Loss Functions
 
-# Training
+* The final step is to `softmax` outputs to generate a probability distribution against a dictionary.
+
+* The natural loss function is `crossentropy`.
+
+* Loss functions may be abritrary.
 
 # Regularisation
 
-# Examples
+* The original paper used dropout for the layer parameters and label smoothing.
+
+* Dropout improves stability and convergence time.
+
+* Label smoothing increases model perplexity (at the cost of labelled accuracy).
+
