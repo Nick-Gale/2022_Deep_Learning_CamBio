@@ -1,7 +1,7 @@
 ---
 title: "Generative Adverserial Networks"
 subtitle: "Generative Modelling with Neural Networks"
-author: "Nicholas Gale" 
+author: "Nicholas Gale and Stephen Eglen" 
 engine: jupyter
 execute:
   echo: true
@@ -181,8 +181,44 @@ $$ L_G(z) = -\log(D(G(z))) $$
 
 # Regularisation
 
-# Spectral Normalisation
+* Mode collapse is often related to Lipschitz continuity being violated in the discriminator.
+
+* This is most directly controlled with a gradient penalty mechanism.
+
+* Weight normalisation is often perforemed through spectral Normalisation: $ L += \sqrt{\Vert W \Vert_1 \Vert W Vert_\infty}.
+
+* Discriminator is trained with multiple update for each generator update e.g 5 in Arkovsky et al (2017)
+
+* Usual regularisation on individual networks: dropout, early stopping etc.
 
 # Data Augmentation
 
+* A useful feature of GANs is data augmentation: supplementing data when there is none.
+
+* We simply generate data by sampling in the latent space and passing it through the generator.
+
+* This is only useful when we are *certain* the GAN has converged correctly.
+
+* Has huge potential for error e.g. mode collapse.
+
+* Any mismatch between reality and generator will carry to downstream analysis.
+
 # Batch Equalisation
+
+* A problem in experimental sciences: day-to-day variance, and experimenter-experimenter variance.
+
+* Same underlying biology (or other natural phenomena).
+
+* We would like to remove the bias introduce by different experiments.
+
+* A modern approach is to use GANs as a style transfer for data.
+
+* The batch data is passed through a generator to look like "real" data which is trained concurrently with a generator.
+
+* This removes the inter-batch variance and cleans up the dataset. 
+
+# References
+
+[Generative Adversarial Nets](https://proceedings.neurips.cc/paper/2014/file/5ca3e9b122f61f8f06494c97b1afccf3-Paper.pdf)
+[Wasserstein generative adversarial networks, Arkovsky et. al. (2017)](https://proceedings.mlr.press/v70/arjovsky17a.html)
+[Batch equalization with a generative adversarial network, Qian et. al. 2020](https://academic.oup.com/bioinformatics/article/36/Supplement_2/i875/6055901)

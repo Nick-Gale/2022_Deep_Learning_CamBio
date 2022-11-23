@@ -1,14 +1,13 @@
 ---
 title: "Flux"
 subtitle: "A Julia approach to Machine Learning"
-author: "Nicholas Gale" 
+author: "Nicholas Gale and Stephen Eglen" 
 engine: jupyter
 execute:
   echo: true
 format:
   revealjs:
     keep-tex: true
-    monofont: "JuliaMono"
 ---
 
 # Building Neural Networks
@@ -19,7 +18,7 @@ format:
 
 * Often inefficient
 
-* These imply package
+* These imply packages are useful!
 
 # Flux
 
@@ -45,19 +44,21 @@ format:
 
 * Constructed to measure difference between regressor and datas.
 
-* Common loss functions are MSE and `logitcrossentropy`: many more...
+* Common loss functions are `MSE`, `logitcrossentropy`, `binarycrossentropy`, etc.
 
-# Differentation
+# Differentitation
 
 * Backbone of machine learning.
 
 * Newtons method or gradient descent is an optimisation method.
 
-* Can be computed symbolically, numerically, or automatically: $$ \frac{df}{dx} = \lim_{x\rightarrow 0} \frac{f(x+h) - f(x)}{h} $$
+* Can be computed symbolically, numerically, or automatically:
+
+ $$ \frac{df}{dx} = \lim_{x\rightarrow 0} \frac{f(x+h) - f(x)}{h} $$
 
 # Automatic Differentation
 
-* Define a dual number as: $ d(x) = (x, \epsilon) $.
+* Define a dual number as: $d(x) = (x, \epsilon)$
 
 * By Taylor series the derivative is given by $\epsilon$.
 
@@ -65,65 +66,238 @@ format:
 
 * Differentation is now arbitrary precision and cheaper to compute.
 
-# Chain Rule and Backpropogation
+# Chain Rule and Backpropagation
 
-* Backpropogation is *the* machine learning algorithm.
+* Backpropagation is *the* machine learning algorithm.
 
-* Errors are back-propogated through layers of network to give training signal.
+* Errors are back-propagated through layers of network.
 
-* Under the hood: chain rule $$ \frac{\partial F}{\partial x} = \frac{\partial f_1}\frac{\partial f_2} \frac{\partial f2}{\partial f3} \ldots \frac{\partial f_n}{\partial x} $$
+* Under the hood: chain rule.
+$$\frac{\partial F}{\partial x} = \frac{\partial f_1}{\partial f_2}\frac{\partial f_2}{\partial f_3}\ldots\frac{\partial f_n}{\partial x}$$
 
 # Zygote
 
-* There are extensive automatic differentation packages in Julia: Flux uses Zygote.
+* There are many automatic differentation packages in Julia: Flux uses Zygote.
 
 * The API call is ``gradient`` and is used in two ways: functions and `do` blocks.
 
-* Each method needs to specify the parameters which will be differentiated through `Params` conversion.
+* Each method needs to specify the parameters which will be differentiated through `Flux.params` conversion.
 
 # Zygote Example
 
 ```{julia}
-f(x) = tanh.(W .* x)
+using Flux
+f(x) = sum(tanh.(W .* x))
 W = rand(2,2)
-Params(W)
-
+x = rand(2,1)
 # a single instance
-dfdw = gradient(()->f(x), Params(W))
+dfdw = gradient(()->f(x), Flux.params(W))
+# as a do block
+g = gradient(Flux.params(W)) do
+	f(x)
+end
+```
 
-# as a function
-dfdx(x) = gradient(
+* Both of these methods of computation have advantages
+
+* Do blocks are particularly useful for defining callback functions.
+
+* Callbacks are useful when monitoring training progress.
 
 # Optimisation
 
+* A loss function may be optimised in any way.
+
+* The random sampling method is as efficient as any for finding *global* minima.
+
+* Finding local minima (or just reducing loss) is most often done through gradient descent.
+
 # Gradient Descent and Momentum
+
+* Gradient descent is defined as: $$W_{t+1} = W_t - \eta \frac{\partial L}{\partial W} $$
+
+* Gradient descent may be accelerated by momentum.
+
+* Flux has support for multiple optimisers through an optimiser object class: `opt(lr, hyperparams)`
+
+* `Descent(lr), Momentum(lr, alp), ADAM()`
 
 # Stochastic Gradient Descent
 
+* Gradients can be approximated by a subset of data.
+
+* Stochastic Gradient Dsecent is when these subsets are chosen randomly.
+
+* Helps avoid local minima and alleviates computer memory constraints.
+
+# Activiation Functions
+
+* The activation function mimics the firing rate of a neuron.
+
+* It provides a non-linearity to allow complex learning manifolds.
+
+* Flux supports all the common functions: `tanh`, `relu`, `σ`, etc.
+
+```{julia}
+#| echo: false
+using Plots
+x = -2:0.01:2
+plot(x, [Flux.σ.(x) Flux.tanh.(x) Flux.relu(x)]; labels = ["σ" "tanh" "ReLu"], ticks=false, title="Common Activation Functions")
+```
 # Flux layers
+
+* Neural networks are composed as layers of weights.
+
+* Flux offers default layers which can be found in the documentation: `Dense`, `Conv`, `MaxPool`, `RNNCell` etc.
+
+* We can also define our own custom layers by a structure.
+
+* Zygote differentates through structure fields 
+
+# Custom Flux Layer Example
+
+```{julia}
+struct CustomDense
+	W
+	b
+	function CustomDense(dimsin::Int, dimsout::Int)
+		W = rand(dimsout, dimsin)
+		b = rand(dimsout)
+		new(W,b)
+	end
+end
+# overload object definintion
+(obj::CustomDense)(x) = obj.W * x .+ obj. b
+dense = CustomDense(5,2)
+dense(rand(5))
+```
+# Dense
+
+* The dense layer represents the all-to-all connections.
+
+* API is `Dense(dimsin => dimsout)`.
+
+* Optional keywords are `bias=true/false`, and activation functions
+
+# Conv
+
+* The convolutional layer is specified with `Conv((kerneldim1, kerneldim))`
+
+* It accepts keywords `stride=(s1,s2)`, `pad=(p1, p2)`, `dilation=(d1,d2)`, `bias`, `activation`.
+
+* The layer accepts a 4D tensor: x dimension, y dimension, feature dimension, and data-index.
+
+# Flatten, Dropout, Pooling
+
+* `flatten` layers take an input and flatten it to a vector.
+
+* `Dropout` layers freeze a fraction of parameters in learning.
+
+* `BatchNorm` normalises mean/variance.
+
+*  `AlphaDropout` layers freeze parameters and normalise mean and variance.
+ 
+* There are extensive pooling layers: MaxPool((d1, d2)) is common.
 
 # Chain: Composing a model
 
+* Composing a model is simply a chain of layers.
+
+* Flux allows this to be intutively done with chain: `model(x) = Chain(Dense(10=>3), Dense(3=5))`
+
+* A generically complex model can be given by a function $f$.
+
+* Flux can be told this complex function is a model with `@functor f`.
+
+# Data and Batching
+
+* Data is thought of "naturally" in Flux.
+
+* It operates on a single point, or a vector of points.
+
+* A convenience function `DataLoader` is provided.
+
+* It zips data pairs and can optionally shuffle with a given batch size.
+
+```{julia}
+xvec = rand(40,100); yvec = rand(100);
+data = Flux.DataLoader((xvec, yvec); batchsize=5, shuffle=true)
+for (x, y) in data
+	# loop eight times through batches of 5
+end
+```
 # Loss Functions
 
-# Batching
+* Loss functions are defined on individual data pairs.
 
-# Data as a vector
+* Flux then aggregates them along a batch along the last dimension.
 
-# Data as a dimension
+* Loss aggregration is by default the average: can be specified with keyword `agg`.
 
-# One-Hot Encoding
+* There are many default loss functions: `mse`, `logitcrossentropy`, `HuberLoss` etc.
 
 # Updating parameters
 
+* We have a model, data, optimisers, and loss functions and can now update parameters.
+
+* Flux makes this easy throught the `update!` API call.
+
+* Update takes an optimiser, gradient values, and updates specified parameters.
+
+* `update!(opt, Flux.Params(w...), grad)`
+
+* This can be applied through a loop over the data where the gradient is repeatedly computed.
+
 # Training
+
+* An even easier API to work with is `train!`. 
+
+* It accepts a loss function, parameters, a data generator, and optimiser.
+
+* `train!(loss, Flux.Params(w...), data, opt)`
 
 # Callbacks
 
-# Plotting
+* A callback function provides a printout under certain conditions.
 
-# Training an Autoencoder
+* They are passed as optional keywords to train e.g. `train!(...; cb = ()->println("This callsback"))`
+
+* By default they print every epoch but can be slowed down with `cb = throttle(some_func, epoch_interval)`
+
+* Can be used with `Flux.stop()` to abort training if a condition is met e.g. accuracy goal, timing limit etc.
+
+# GPU support
+
+* A model can be piped into a GPU/CPU device with the `gpu` and `cpu` APIs
+
+* For a GPU based model the data should be converted to CUDA arrays.  Only CUDA is supported.
+
+```{julia}
+#| eval: false
+using CUDA
+model(x) = Chain(Dense(5=>3), Dense(3=>1)) |> gpu
+inp = CUDA.rand(5)
+model(inp)
+```
+
+# Model Saving
+
+* To save a model we need the `BSON` package.
+
+* A model is saved with `@save "dir" model_obj`
+
+* A model is loaded with `@load "dir" model_obj'`
+
+* It is recommended to pipe models to a CPU device *before* saving.
+
+# Workflow
+
+* Within a training loop you can be expressive.
+
+* Common to plot loss functions on training and validation sets.
+
+* Common to plot a data-visualisation (particularly for generative models)
+
+* Can have an indication of training time
 
 # Training a CNN
-
-# Training an RNN
