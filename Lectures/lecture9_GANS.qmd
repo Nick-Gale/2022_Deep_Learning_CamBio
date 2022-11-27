@@ -8,26 +8,22 @@ execute:
 format:
   revealjs:
     keep-tex: true
-    monofont: "JuliaMono"
+    slide-number: true
+    theme: [serif, custom.scss]
+    chalkboard: true 
+    backgroundcolor: white
+    incremental: true
 ---
-
-# Where are we going?
-
-* These cells do not exist
-
-```{julia}
-# Code block to generate cells that do not exist
-```
 
 # What are GANs
 
 * GANs are a generative model of neural networks
 
-* They learn, very effectively, a distributions properties.
+* They learn a statistical distributions properties.
 
-* They can then be used to generate (often images) from that distribution.
+* They can then be used to generate samples from that distribution.
 
-* Famous examples are style transfer and face generation (Barrack Obama giving a fake speech).
+* Famous examples are style transfer and face generation.
 
 # The Basic Idea
 
@@ -37,17 +33,47 @@ format:
 
 * The discriminator is trained to filter real data from fake.
 
-* The goals are opposed: adversarial.
+* The goals are opposed: adverserial.
 
 # Components
 
-* Suppose the data $x \sim \text{Dist}.
+* Suppose the data are generated from some distribution: $$ x \sim \text{Dist}(\alpha...) $$ 
 
-* The discriminator $D$ is a function mapping to $\{0, 1}\$.
+:::{.incremental}
 
-* The generator $G$ takes a latent vector $z \sim U(0,1)^k$ and generates a vector in $\text{Dist^\prime}: $G(z) = y$.
+* ![](./images/GANarchitecture_data.png){fig-align="center"}
 
-* The goal: $\text{Dist^\prime} \rightarrow = \text{Dist}$
+:::
+
+#
+
+* The discriminator is a function mapping to a binary target: $$ D \rightarrow \{ 0, 1 \} $$ 
+
+:::{.incremental}
+
+* ![](./images/GANarchitecture_discriminator.png){fig-align="center"}
+
+:::
+
+#
+
+* The generator $G$ takes a latent vector $z \sim U(0,1)^k$ and generates a fake data sample: $$G(z) = y \sim \text{Dist}_\text{Gen}(\alpha^\prime \ldots) $$
+
+:::{.incremental}
+
+* ![](./images/GANarchitecture_generator.png){fig-align="center"}
+
+:::
+
+#
+
+* The training goal is to approximate the data generating distribution: $$ \text{Dist}_\text{Gen}(\alpha ^\prime \ldots) \approx \text{Dist}_\text{Data}(\alpha \ldots) $$
+
+:::{.incremental}
+
+* ![](./images/GANarchitecture.png){fig-align="center"}
+
+:::
 
 ::: {.notes}
 * We are always interested in some data generating distribution.
@@ -57,22 +83,21 @@ format:
 * The generator needs to trick the discriminator and is a probability distribution from a random variable $Z \sim U(0,1)^k$. 
 
 * The latent space is commonly uniform between 0 and 1. More dimensions are added for complexity.
+:::
 
 # Construction
 
-* $G$ and $D$ are just probability transforms: arbitrary.
+* $G$ and $D$ are arbitrary probability transforms.
 
-* Neural networks are common choices.
+* Neural networks are common choices: generalised functions.
 
-* We can exploit data structure to inform choices.
+* Desirable to use data to inform network architecture.
 
 # Loss Functions
 
 * The discriminator is acting as a binary classifier.
 
-* The natural loss function is `logitcrossentropy`.
-
-$$ L = -E_{x\in\text{Dist}} [\log(D(x))] - E_{z \in \text{Dist}ˆ\prime}[\log(1-D(G(z))]$$
+* The natural loss function is `logitcrossentropy`: $$ L = -E_{x\in\text{Dist}_\text{Data}} [\log(D(x))] - E_{y \in \text{Dist}_\text{Gen}}[\log(1-D(G(z))]$$
 
 # Discriminator Loss
 
@@ -80,9 +105,7 @@ $$ L = -E_{x\in\text{Dist}} [\log(D(x))] - E_{z \in \text{Dist}ˆ\prime}[\log(1-
 
 * The generator is targeting a vector in the data distribution.
 
-* For labelled data $(x,y)$ this reduces to:
-
-$$ L_D(x, y) = -y * \log(D(x)) - (1 - y) \log(1 - D(x))$$
+* For labelled data $(x,y)$ this reduces to: $$ L_D(x, y) = -y\log(D(x)) - (1 - y) \log(1 - D(x))$$
 
 # Generator Loss
 
@@ -90,9 +113,7 @@ $$ L_D(x, y) = -y * \log(D(x)) - (1 - y) \log(1 - D(x))$$
 
 * Natural reward is to flip the classification loss.
 
-* It doesn't need to know the data: this is implicitly learned.
-
-$$ L_G(z) = -\log(D(G(z))) $$
+* It doesn't need to know the data: this is implicitly learned. $$ L_G(z) = -\log(D(G(z))) $$
 
 ::: {.notes}
 * Implicit learning is good
@@ -108,38 +129,76 @@ $$ L_G(z) = -\log(D(G(z))) $$
 
 * Second, batches are presented to discriminator and D updated.
 
-* Single datum: generator - fake data discriminator - real data discriminator.
+# A simple example
 
-# 
-```{julia}
-	# code block for training
+Consider a non-trivial probability distribution:
+
+![](./images/gan_pdf.png)
+
+# Training Code
+
+```{julia }
+#| echo: true
+#| eval: false
+#| code-line-numbers: "3,4,9,10"
+D(samples) = Chain(Dense(samples=>100, relu), Dense(100=>50, relu), Dense(50=>1, σ))
+G(input, samples) = Chain(Dense(input=>50, relu), Dense(50=>1000, relu), Dense(1000=>samples, x->0.5*tanh(x), bias=false))
+lossD(x, y, dsc) = -mean(y.*log.(dsc(x))) .- mean((1 .- y).*log.(1 .- dsc(x)))
+lossG(z, gen, dsc) = -.mean(log.(dsc(gen(z))))
+
+# Training functions
+function train_discriminator(dsc, gen, gendata, real_data, batch, opt)
+	data = DataLoader(hcat(gendata, realdata), batchsize=batch, shuffle=true)
+	Flux.train!(lossD, Flux.params(dsc), data, opt)
+	Flux.train!(lossG, Flux.params(gen), gendata, opt)
+end
 ```
+
+# Result
+
+![](./images/gan_pdf_learning.gif)
 
 # Game Theory
 
 * $G$ and $D$ are playing a two player game.
 
-* This loss function is a min-max game
+* This loss function is a min-max game.
 
 * Training converges to a Nash equilibrium.
 
-* The global minima of the game is $\text{D} = \text{Dˆ\prime}$
+* The global minima of the game is $\text{D}_\text{Data}(\alpha \ldots) = \text{D}_\text{Gen}(\alpha^\prime \ldots)$
 
-# 
+# MNIST
+
+* A famous dataset of handwritten numbers.
+
+* Very common machine learning benchmark.
+
+* ![MNIST Sample](./images/mnist.png) 
 
 # Instability
 
-* GANs are difficult to train.
+* GANs are difficult to train even on simple data such as MNIST.
+
+* Getting a GAN to converge is often a case of "machine teaching".
+
+* This is valuable in and of itself - helps construct the mental model of the problem.
+
+* There are some common GAN instabilities: saturation and mode collapse.
+
+# Loss Saturation
 
 * The min-max loss function often saturates: the gradients go to zero.
 
 * This can happen when the discriminator gives an overly confident rejection.
 
-```{julia}
-	# Training saturation
-```
+* Less of a problem with Wasserstein Loss GANS.
 
-# Fixes
+# Loss Saturation
+
+![](./images/gan_saturate.gif)
+
+# Saturation Fixes
 
 * Adjust learning rate down for the discriminator.
 
@@ -155,13 +214,11 @@ $$ L_G(z) = -\log(D(G(z))) $$
 
 * This is known as mode-collapse: the target data is a composition of modes.
 
-#
+# Mode Collapse
 
-```{julia}
-	# Mode collapse
-```
+![](./images/gan_mode_collapse.gif)
 
-# Fixes
+# Mode Collapse Fixes
 
 * Increase latent size: more degrees of freedom to optimise.
 
@@ -175,19 +232,25 @@ $$ L_G(z) = -\log(D(G(z))) $$
 
 * Leverage your visual system: loss, discriminator accuracy, and generated data.
 
-* Generator and discriminator loss should be seperated.
+* Generator and discriminator loss should be separated.
 
-* Real and fake accuracy should be seperated.
+* Real and fake accuracy should be separated.
+
+#
+
+![](./images/gan_arbitrary_train.gif)
 
 # Regularisation
 
-* Mode collapse is often related to Lipschitz continuity being violated in the discriminator.
+* Mode collapse is often related to Lipschitz continuity being violated in the discriminator: gradient penalty mechanism.
 
-* This is most directly controlled with a gradient penalty mechanism.
+* Weight normalisation is often performed through Spectral Normalisation: $$ L += \sqrt{\Vert W \Vert_1 \Vert W \Vert_\infty} $$
 
-* Weight normalisation is often perforemed through spectral Normalisation: $ L += \sqrt{\Vert W \Vert_1 \Vert W Vert_\infty}.
+# Regularisation Tricks
 
-* Discriminator is trained with multiple update for each generator update e.g 5 in Arkovsky et al (2017)
+* Discriminator is trained with multiple updates for each generator update.
+
+* Wasserstein loss (Earth Movers Distance) redefines the game to arbitrary maximimisation - not classification.
 
 * Usual regularisation on individual networks: dropout, early stopping etc.
 
@@ -197,13 +260,11 @@ $$ L_G(z) = -\log(D(G(z))) $$
 
 * We simply generate data by sampling in the latent space and passing it through the generator.
 
-* This is only useful when we are *certain* the GAN has converged correctly.
-
-* Has huge potential for error e.g. mode collapse.
+* This is only useful when we are *certain* the GAN has converged correctly -serious error potential.
 
 * Any mismatch between reality and generator will carry to downstream analysis.
 
-# Batch Equalisation
+# Problem: How to control variance?
 
 * A problem in experimental sciences: day-to-day variance, and experimenter-experimenter variance.
 
@@ -211,14 +272,28 @@ $$ L_G(z) = -\log(D(G(z))) $$
 
 * We would like to remove the bias introduce by different experiments.
 
+# Batch Equalisation
+
 * A modern approach is to use GANs as a style transfer for data.
 
 * The batch data is passed through a generator to look like "real" data which is trained concurrently with a generator.
 
 * This removes the inter-batch variance and cleans up the dataset. 
 
+# Summary
+
+* A GAN is a two-player game between a generator model and a discriminator model.
+
+* The discriminator classifies real/fake data and the generator plays to trick it.
+
+* The game is globally minimised when the generator matches the data-generating distribution.
+
+* The generator can be used to analyse a distribution, augment/generate data, and normalise datasets.
+
 # References
 
-[Generative Adversarial Nets](https://proceedings.neurips.cc/paper/2014/file/5ca3e9b122f61f8f06494c97b1afccf3-Paper.pdf)
+[Generative Adversarial Nets, Goodfellow et. al. (2014)](https://proceedings.neurips.cc/paper/2014/file/5ca3e9b122f61f8f06494c97b1afccf3-Paper.pdf)
+
 [Wasserstein generative adversarial networks, Arkovsky et. al. (2017)](https://proceedings.mlr.press/v70/arjovsky17a.html)
-[Batch equalization with a generative adversarial network, Qian et. al. 2020](https://academic.oup.com/bioinformatics/article/36/Supplement_2/i875/6055901)
+
+[Batch equalization with a generative adversarial network, Qian et. al. (2020)](https://academic.oup.com/bioinformatics/article/36/Supplement_2/i875/6055901)

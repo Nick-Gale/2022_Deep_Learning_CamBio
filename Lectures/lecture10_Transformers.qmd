@@ -11,8 +11,6 @@ format:
     monofont: "JuliaMono"
 ---
 
-# Where are we going?
-
 # Traditional Sequence Analysis
 
 * Sequence analysis has been typically performed by recurrent neural networks.
@@ -45,77 +43,75 @@ format:
 
 * Transformers leverage the idea of attention: not new.
 
-* Attention is computed between all elements in a sequence.
-
-* Asymetric, weighted relationship between sequence elements.
+* Attention is computed between all elements in a sequence: a weighted relationship between elements.
 
 * All units are considered independently: massive parallelisation.
 
-# Self Attention
+# Attention: bare bones
 
-* Self attention is similar to constructing the Hopfield network weights.
+* Simple attention is similar to constructing the Hopfield network weights.
 
-* It is a series of weighted matrices for each input.
+* For each vector pair compute the dot product between them.
 
-* For each vector $x_i$ find relations with all other vectors $x_j$ using Hebb rule and normalise with `softmax`.
-
-$$ a_{ij} = x_i^T x_j $$
-
-$$ A_{ij} = \frac{\exp(a_{ij})}{\sum_j \exp(a_ij} $$
+* For each vector $x_i$ find relations with all other vectors $x_j$ using Hebb rule and normalise with `softmax`. $$ a_{ij} = x_i^T x_j $$ $$ A_{ij} = \frac{\exp(a)_{ij})}{\sum_j \exp(a)_{ij} $$
 
 # Querys and Keys
 
 * Imagine the vectors are one-hot batched: (0,0,1, \ldots, 0,0)
 
-* The product $x_i^Tx_j$ will be one only in the indexes $i$ and $j$.
+* The product $x_i^Tx_j$ will be one only in the indexes $i=j$.
 
 * Therefore, this operation is acting like a look-up table.
 
 * Transformers inherit the language and call these *keys* and *queries*.
 
-# Self Attention Retrevial
+# Attention Retrevial
 
 * An input is weighted by the row of the attention matrix corresponding to its index.
 
 * The ouput is the weighted sum of all vectors by this attention row: $$ y_i = \sum_j A_{ij} x_j $$
 
-# Self Attention Generalised
+# Attention Generalised
 
-* We would like to let the keys and queries not be fully determined by a lookup value.
+* We would like to let the keys, queries, and values not be fully determined by a lookup value.
 
 * We imagine them as linear transforms of the total dictionary embedding values into a new space.
 
-* Therefore, they are matrices (K, Q) with a rank $k \times q$ and $q \times v$.
+* Therefore, they are matrices $(W^K, W^Q, W^V)$ with a size $v \times d$.
 
-* This allows us to compress our key/value representation to a lower dimensionality.
+* This allows us to compress our key/query/value representation to a lower dimensionality.
+
+# Transformers
    
-* The objective of the Transformer is therefore to learn the weights of this embedding.
+* The transformer model is composed of two attentional models: an encoder and decoder.
 
-# Transfomer Attention Head
+* Input is in the form of vectors of tokens e.g. genome sequence.
+ 
+* The encoder transforms input to an encoded attentional sequence.
 
-* The transformer attention mechanism is simply a generalisation of the self-attention mechanism.
+* The decoder autoregressively uses the encoder ouput to an ouput sequence.
 
-$$ A(K,Q,V) = \text{softmax}(\frac{K^TQ}{\sqrt{d_k})V $$
+* The output sequence is decoded with a decoder dictionary e.g. amino acids.
 
-* K represents the keys, and Q the querys. V represents the sequence of vectors.
+# Transformer Pre-Processing
 
-* We scale by the number of dimensions for gradient stability in training.
+* Token labels are encoded into a lookup table (Vocabulary).
 
-* A sequence of length $L$ can be encoded in the matrix $V$ with dimension $v \times L$.
+* The input sequence tokens are first wrapped by "Start" and "End" tokens and encoded by the Vocabulary. 
 
-* The attention mechanism is one matrix calculation. Fast.
+* This encoded representation is embedded into vectors of length $v$.
 
-# Multi-head attention
-
-* An attention head can be thought of like a convolutional filter.
-
-* A transformer layer can have multiple heads.
-
-* Each of these heads will learn to focus on different semantic relationships.
-
-* This can be efficiently encoded by simply concatenating each individual head.
-
-* Multi-head attention remains a single matrix calculation.
+::: {.fragment}
+```{julia}
+#| incremental: true
+#| eval: false
+tokenizer = Vocabulary(labels, unknown_symbol)
+sequence = [start, sample_sequence_tokens..., end]
+encoded_sequence = tokenizer(sequence)
+embedder = Transformers.Embed(512, length(tokenizer)
+embedded_seq = embedder(encoded_sequence)
+```
+:::
 
 # Positional Encoding
 
@@ -125,44 +121,95 @@ $$ A(K,Q,V) = \text{softmax}(\frac{K^TQ}{\sqrt{d_k})V $$
 
 * A positional encoding function is used to inject this order into the learning.
 
-* Typically: 
+#
 
-$$ p_k(i) = cos(i/10000^k) $$
-$$ p_k(i) = sin(i/10000^k) $$
+* Positional encodings can be learnt but typically use a fucntion: $$ p_{2k}(i) = cos(i/10000^k) $$ $$ p_{2k+1}(i) = sin(i/10000^k) $$
 
-# Normalisation and Feed-forward pass.
+::: {.fragment}
+positional_embedder = Position(512)
+em_postional_seq = embedded_seq .+ postitional_embedder(embedded_seq)
+:::
 
-* The output of the attention head is first layer normalised.
+# Transfomer Attention Head
 
-* A feed-foward network is used after attention and positional encoding.
+* A sequence of length $L$ can be encoded by matrix $X$ with dimension $v \times L$.
 
-* Each output vector is passed through the FF-network.
+* The transformer attention mechanism is simply a generalisation of this attention mechanism: $$ A(K,Q,V) = \text{softmax}(\frac{K^TQ}{\sqrt{d_k}) \odot V $$ $$K = W^KX, Q = W^QX, V = W^VX$$
 
-* The outputs are then layer normalised.
+* K represents the keys, Q the querys, V the values. Softmax is calculated row by row. $\odot$ is element-wise product.
 
-# Encoder
+* We scale by the number of dimensions for gradient stability in training.
 
-* The encoder is established with N layers.
+# Multi-head attention
 
-* Each layer has a multi-head attention block with a feed-forward network.
+* An attention head can be thought of like a convolutional filter.
 
-* Key and Query embedding sizes are often chosen to partition the vector length.
+* A transformer layer can have multiple heads.
 
-* The output is a series of vectors which can be optionally merged into a single latent vector.
+* Each of these heads will learn to focus on different semantic relationships.
 
-# Decoder
+* This can be efficiently encoded by simply concatenating each individual head. Usually, $n * h_d = d$.
 
-* The decoder is similarly composed of multihead attention layers.
+# Residual and Normalisation
 
-* The latents of the encoder are combined with each decoder layer.
+* The outputs of the attention mechanism are mutliplied by matrix $W^O$ of dimension $d \times v$.
 
-* This is done by composing the encoder latents with the outputs to create *keys* and *queries*.
+* The pre-attention inputs (residuals) are added to the re-embedded attention transformed inputs.
 
-* The keys and queries are composed with the values of the output layer *only*.
+* This combined vector is then layer-normalised.
 
-* These are layer-normalised.
+* These residuals allow positional embeddings to be preserved.
 
-* This generates the output sequence at a given recursion stage.
+# Feed Forward Network
+
+* The normalised self-attention and residuals are passed through a feed-foward network: $$\text{F(x) = \text{ReLu}(W_1x + b_1)W_2 + b_2$$
+
+* The inner-dimension is independent of the embedding dimension e.g. 2048.
+
+* The feed forward network is shared between all tokens.
+
+* The residuals are added to the ouput of the FFN and layer-normalised.
+
+#
+
+* Image of Encoder Block*
+
+# Encoder Block/Layer
+
+* The operations of self-attention, feed forward networks, and feed-forward make an encoder block.
+
+* This can be thought of as a layer in a regular NN.
+
+* The Encoder is formed of several encoder blocks e.g. 6
+
+:::{.fragment}
+```{julia}
+encoder_block = Transformers.Transformer(model_d, n_heads, head_d, inner_d)
+encoder_block_output = encoder_block(block_input)
+encoder = Chain(block1, ..., blockn)
+```
+:::
+
+# Decoder Block
+
+* A decoder block has a self-attention, an encoder-attention, and a feed-forward network.
+
+* These are layer-normalised and apart from the encoder-attention behave as before.
+
+* The encoder-attention takes its queries from the decoder input.
+
+* The keys and values are constructed using the output from the top encoder layer.
+
+* These keys and values are shared across all decoder blocks.
+
+# 
+
+```{julia}
+#| eval: false
+decoder_block = Transformers.TransformerDecoder(model_d, n_heads, head_d, inner_d)
+decoder_block_output = decoder_block(block_input, encoder_output)
+decoder = Chain(block1, ..., blockn)
+```
 
 # Sequence Generation
 
@@ -176,7 +223,7 @@ $$ p_k(i) = sin(i/10000^k) $$
 
 # Loss Functions
 
-* The final step is to `softmax` outputs to generate a probability distribution against a dictionary.
+* The final step is to `softmax` outputs to generate a probability distribution against a dictionary/vocabulary.
 
 * The natural loss function is `crossentropy`.
 
@@ -190,3 +237,46 @@ $$ p_k(i) = sin(i/10000^k) $$
 
 * Label smoothing increases model perplexity (at the cost of labelled accuracy).
 
+# Model Summary
+
+* The encoder takes positional and contextual inputs and the decoder autoregressively produces outputs.
+
+* The encoder and decoders use attention heads and a feed-forward network to perform the learning.
+
+* The attention mechanism transforms embedding into a different subspace through keys/queries/values matrices.
+
+* Keys, Queries, Values are learned and represent optimal information relationships in the problem context.
+
+# Transformers in Biology
+
+* Transformers are in relative infancy - lots of work to be done.
+
+* The obvious candidate is sequence analysis: genome and protein.
+
+* Some interesting developments: gene transcription factors using Enformer (Deep Mind)
+
+* Protein Prediction tasks.
+
+# Transforming the Language Of Life.
+
+* Protein prediction can be done classicaly: HMMs and BLAST. Exponentially computationally expensive.
+
+* CNNs and RNNs are computationally more efficient but task depedent and dont generalise.
+
+* Authors propose Transformer model PRoBERTa: pre-trained agnostic amino acid sequence representation.
+
+* Protein prediction tasks: binary PPI and protein family classification.
+
+# Problems
+
+* Authors managed to achieve state of the art performance on tasks (tasks not too important)
+
+* The resulting model is vastly more computationally efficient: 128 GPUs for 4 days => 4 GPUs for 18 hours.
+
+* Still difficult to reproduce. GPUs are top of the line and few people have access to this many.
+
+* Transformers in general are large models and pose a reproducibility problem.
+
+# Summary
+
+* Transformers are 

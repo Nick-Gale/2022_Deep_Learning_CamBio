@@ -97,6 +97,8 @@
   <link href="lecture9_GANS_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="lecture9_GANS_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="lecture9_GANS_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="lecture9_GANS_files/libs/revealjs/plugin/reveal-chalkboard/font-awesome/css/all.css" rel="stylesheet">
+  <link href="lecture9_GANS_files/libs/revealjs/plugin/reveal-chalkboard/style.css" rel="stylesheet">
   <link href="lecture9_GANS_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
   <style type="text/css">
 
@@ -400,88 +402,125 @@ Nicholas Gale and Stephen Eglen
 </div>
 
 </section>
-<section id="where-are-we-going" class="title-slide slide level1 center">
-<h1>Where are we going?</h1>
-<ul>
-<li>These cells do not exist</li>
-</ul>
-<div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># Code block to generate cells that do not exist</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-
 <section id="what-are-gans" class="title-slide slide level1 center">
 <h1>What are GANs</h1>
 <ul>
-<li><p>GANs are a generative model of neural networks</p></li>
-<li><p>They learn, very effectively, a distributions properties.</p></li>
-<li><p>They can then be used to generate (often images) from that distribution.</p></li>
-<li><p>Famous examples are style transfer and face generation (Barrack Obama giving a fake speech).</p></li>
+<li class="fragment"><p>GANs are a generative model of neural networks</p></li>
+<li class="fragment"><p>They learn a statistical distributions properties.</p></li>
+<li class="fragment"><p>They can then be used to generate samples from that distribution.</p></li>
+<li class="fragment"><p>Famous examples are style transfer and face generation.</p></li>
 </ul>
 </section>
 
 <section id="the-basic-idea" class="title-slide slide level1 center">
 <h1>The Basic Idea</h1>
 <ul>
-<li><p>A GAN is really a composition of two models: a generator and a discriminator.</p></li>
-<li><p>The generator is trained to trick the discriminator.</p></li>
-<li><p>The discriminator is trained to filter real data from fake.</p></li>
-<li><p>The goals are opposed: adversarial.</p></li>
+<li class="fragment"><p>A GAN is really a composition of two models: a generator and a discriminator.</p></li>
+<li class="fragment"><p>The generator is trained to trick the discriminator.</p></li>
+<li class="fragment"><p>The discriminator is trained to filter real data from fake.</p></li>
+<li class="fragment"><p>The goals are opposed: adverserial.</p></li>
 </ul>
 </section>
 
 <section id="components" class="title-slide slide level1 center">
 <h1>Components</h1>
 <ul>
-<li><p>Suppose the data $x .</p></li>
-<li><p>The discriminator <span class="math inline">\(D\)</span> is a function mapping to ${0, 1}$.</p></li>
-<li><p>The generator <span class="math inline">\(G\)</span> takes a latent vector <span class="math inline">\(z \sim U(0,1)^k\)</span> and generates a vector in $: <span class="math inline">\(G(z) = y\)</span>.</p></li>
-<li><p>The goal: <span class="math inline">\(\text{Dist^\prime} \rightarrow = \text{Dist}\)</span></p></li>
+<li class="fragment">Suppose the data are generated from some distribution: <span class="math display">\[ x \sim \text{Dist}(\alpha...) \]</span></li>
 </ul>
-<p>::: {.notes} * We are always interested in some data generating distribution.</p>
+<div>
 <ul>
+<li class="fragment"><img data-src="./images/GANarchitecture_data.png" data-fig-align="center"></li>
+</ul>
+</div>
+</section>
+
+<section id="section" class="title-slide slide level1 center">
+<h1></h1>
+<ul>
+<li class="fragment">The discriminator is a function mapping to a binary target: <span class="math display">\[ D \rightarrow \{ 0, 1 \} \]</span></li>
+</ul>
+<div>
+<ul>
+<li class="fragment"><img data-src="./images/GANarchitecture_discriminator.png" data-fig-align="center"></li>
+</ul>
+</div>
+</section>
+
+<section id="section-1" class="title-slide slide level1 center">
+<h1></h1>
+<ul>
+<li class="fragment">The generator <span class="math inline">\(G\)</span> takes a latent vector <span class="math inline">\(z \sim U(0,1)^k\)</span> and generates a fake data sample: <span class="math display">\[G(z) = y \sim \text{Dist}_\text{Gen}(\alpha^\prime \ldots) \]</span></li>
+</ul>
+<div>
+<ul>
+<li class="fragment"><img data-src="./images/GANarchitecture_generator.png" data-fig-align="center"></li>
+</ul>
+</div>
+</section>
+
+<section id="section-2" class="title-slide slide level1 center">
+<h1></h1>
+<ul>
+<li class="fragment">The training goal is to approximate the data generating distribution: <span class="math display">\[ \text{Dist}_\text{Gen}(\alpha ^\prime \ldots) \approx \text{Dist}_\text{Data}(\alpha \ldots) \]</span></li>
+</ul>
+<div>
+<ul>
+<li class="fragment"><img data-src="./images/GANarchitecture.png" data-fig-align="center"></li>
+</ul>
+</div>
+<aside class="notes">
+<ul>
+<li><p>We are always interested in some data generating distribution.</p></li>
 <li><p>The discriminator needs to be trained to see if the data is real (1) or fake (0)</p></li>
 <li><p>The generator needs to trick the discriminator and is a probability distribution from a random variable <span class="math inline">\(Z \sim U(0,1)^k\)</span>.</p></li>
 <li><p>The latent space is commonly uniform between 0 and 1. More dimensions are added for complexity.</p></li>
 </ul>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 
 <section id="construction" class="title-slide slide level1 center">
 <h1>Construction</h1>
 <ul>
-<li><p><span class="math inline">\(G\)</span> and <span class="math inline">\(D\)</span> are just probability transforms: arbitrary.</p></li>
-<li><p>Neural networks are common choices.</p></li>
-<li><p>We can exploit data structure to inform choices.</p></li>
+<li class="fragment"><p><span class="math inline">\(G\)</span> and <span class="math inline">\(D\)</span> are arbitrary probability transforms.</p></li>
+<li class="fragment"><p>Neural networks are common choices: generalised functions.</p></li>
+<li class="fragment"><p>Desirable to use data to inform network architecture.</p></li>
 </ul>
 </section>
 
 <section id="loss-functions" class="title-slide slide level1 center">
 <h1>Loss Functions</h1>
 <ul>
-<li><p>The discriminator is acting as a binary classifier.</p></li>
-<li><p>The natural loss function is <code>logitcrossentropy</code>.</p></li>
+<li class="fragment"><p>The discriminator is acting as a binary classifier.</p></li>
+<li class="fragment"><p>The natural loss function is <code>logitcrossentropy</code>: <span class="math display">\[ L = -E_{x\in\text{Dist}_\text{Data}} [\log(D(x))] - E_{y \in \text{Dist}_\text{Gen}}[\log(1-D(G(z))]\]</span></p></li>
 </ul>
-<p><span class="math display">\[ L = -E_{x\in\text{Dist}} [\log(D(x))] - E_{z \in \text{Dist}ˆ\prime}[\log(1-D(G(z))]\]</span></p>
 </section>
 
 <section id="discriminator-loss" class="title-slide slide level1 center">
 <h1>Discriminator Loss</h1>
 <ul>
-<li><p>The discriminator aims to minimise the above loss.</p></li>
-<li><p>The generator is targeting a vector in the data distribution.</p></li>
-<li><p>For labelled data <span class="math inline">\((x,y)\)</span> this reduces to:</p></li>
+<li class="fragment"><p>The discriminator aims to minimise the above loss.</p></li>
+<li class="fragment"><p>The generator is targeting a vector in the data distribution.</p></li>
+<li class="fragment"><p>For labelled data <span class="math inline">\((x,y)\)</span> this reduces to: <span class="math display">\[ L_D(x, y) = -y\log(D(x)) - (1 - y) \log(1 - D(x))\]</span></p></li>
 </ul>
-<p><span class="math display">\[ L_D(x, y) = -y * \log(D(x)) - (1 - y) \log(1 - D(x))\]</span></p>
 </section>
 
 <section id="generator-loss" class="title-slide slide level1 center">
 <h1>Generator Loss</h1>
 <ul>
-<li><p>The generator is aiming to trick the discriminator.</p></li>
-<li><p>Natural reward is to flip the classification loss.</p></li>
-<li><p>It doesn’t need to know the data: this is implicitly learned.</p></li>
+<li class="fragment"><p>The generator is aiming to trick the discriminator.</p></li>
+<li class="fragment"><p>Natural reward is to flip the classification loss.</p></li>
+<li class="fragment"><p>It doesn’t need to know the data: this is implicitly learned. <span class="math display">\[ L_G(z) = -\log(D(G(z))) \]</span></p></li>
 </ul>
-<p><span class="math display">\[ L_G(z) = -\log(D(G(z))) \]</span></p>
 <aside class="notes">
 <ul>
 <li><p>Implicit learning is good</p></li>
@@ -503,128 +542,195 @@ Nicholas Gale and Stephen Eglen
 <section id="training" class="title-slide slide level1 center">
 <h1>Training</h1>
 <ul>
-<li><p>Training proceeds in a two-step fashion.</p></li>
-<li><p>First, batches are presented to the generator and G updated.</p></li>
-<li><p>Second, batches are presented to discriminator and D updated.</p></li>
-<li><p>Single datum: generator - fake data discriminator - real data discriminator.</p></li>
+<li class="fragment"><p>Training proceeds in a two-step fashion.</p></li>
+<li class="fragment"><p>First, batches are presented to the generator and G updated.</p></li>
+<li class="fragment"><p>Second, batches are presented to discriminator and D updated.</p></li>
 </ul>
 </section>
 
-<section id="section" class="title-slide slide level1 center">
-<h1></h1>
-<div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1"></a>    <span class="co"># code block for training</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="a-simple-example" class="title-slide slide level1 center">
+<h1>A simple example</h1>
+<p>Consider a non-trivial probability distribution:</p>
+
+<img data-src="./images/gan_pdf.png" class="r-stretch"></section>
+
+<section id="training-code" class="title-slide slide level1 center">
+<h1>Training Code</h1>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1" data-code-line-numbers="3,4,9,10"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">D</span>(samples) <span class="op">=</span> <span class="fu">Chain</span>(<span class="fu">Dense</span>(samples<span class="op">=&gt;</span><span class="fl">100</span>, relu), <span class="fu">Dense</span>(<span class="fl">100</span><span class="op">=&gt;</span><span class="fl">50</span>, relu), <span class="fu">Dense</span>(<span class="fl">50</span><span class="op">=&gt;</span><span class="fl">1</span>, σ))</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">G</span>(input, samples) <span class="op">=</span> <span class="fu">Chain</span>(<span class="fu">Dense</span>(input<span class="op">=&gt;</span><span class="fl">50</span>, relu), <span class="fu">Dense</span>(<span class="fl">50</span><span class="op">=&gt;</span><span class="fl">1000</span>, relu), <span class="fu">Dense</span>(<span class="fl">1000</span><span class="op">=&gt;</span>samples, x<span class="op">-&gt;</span><span class="fl">0.5</span><span class="fu">*tanh</span>(x), bias<span class="op">=</span><span class="cn">false</span>))</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">lossD</span>(x, y, dsc) <span class="op">=</span> <span class="fu">-mean</span>(y<span class="op">.*</span><span class="fu">log</span>.(<span class="fu">dsc</span>(x))) <span class="op">.-</span> <span class="fu">mean</span>((<span class="fl">1</span> <span class="op">.-</span> y)<span class="op">.*</span><span class="fu">log</span>.(<span class="fl">1</span> <span class="op">.-</span> <span class="fu">dsc</span>(x)))</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">lossG</span>(z, gen, dsc) <span class="op">=</span> <span class="op">-</span>.<span class="fu">mean</span>(<span class="fu">log</span>.(<span class="fu">dsc</span>(<span class="fu">gen</span>(z))))</span>
+<span id="cb1-5"><a href="#cb1-5"></a></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="co"># Training functions</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="kw">function</span> <span class="fu">train_discriminator</span>(dsc, gen, gendata, real_data, batch, opt)</span>
+<span id="cb1-8"><a href="#cb1-8"></a>    data <span class="op">=</span> <span class="fu">DataLoader</span>(<span class="fu">hcat</span>(gendata, realdata), batchsize<span class="op">=</span>batch, shuffle<span class="op">=</span><span class="cn">true</span>)</span>
+<span id="cb1-9"><a href="#cb1-9"></a>    Flux.<span class="fu">train!</span>(lossD, Flux.<span class="fu">params</span>(dsc), data, opt)</span>
+<span id="cb1-10"><a href="#cb1-10"></a>    Flux.<span class="fu">train!</span>(lossG, Flux.<span class="fu">params</span>(gen), gendata, opt)</span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
+
+<section id="result" class="title-slide slide level1 center">
+<h1>Result</h1>
+
+<img data-src="./images/gan_pdf_learning.gif" class="r-stretch"></section>
 
 <section id="game-theory" class="title-slide slide level1 center">
 <h1>Game Theory</h1>
 <ul>
-<li><p><span class="math inline">\(G\)</span> and <span class="math inline">\(D\)</span> are playing a two player game.</p></li>
-<li><p>This loss function is a min-max game</p></li>
-<li><p>Training converges to a Nash equilibrium.</p></li>
-<li><p>The global minima of the game is <span class="math inline">\(\text{D} = \text{Dˆ\prime}\)</span></p></li>
+<li class="fragment"><p><span class="math inline">\(G\)</span> and <span class="math inline">\(D\)</span> are playing a two player game.</p></li>
+<li class="fragment"><p>This loss function is a min-max game.</p></li>
+<li class="fragment"><p>Training converges to a Nash equilibrium.</p></li>
+<li class="fragment"><p>The global minima of the game is <span class="math inline">\(\text{D}_\text{Data}(\alpha \ldots) = \text{D}_\text{Gen}(\alpha^\prime \ldots)\)</span></p></li>
 </ul>
 </section>
 
-<section id="section-1" class="title-slide slide level1 center">
-<h1></h1>
-
+<section id="mnist" class="title-slide slide level1 center">
+<h1>MNIST</h1>
+<ul>
+<li class="fragment"><p>A famous dataset of handwritten numbers.</p></li>
+<li class="fragment"><p>Very common machine learning benchmark.</p></li>
+<li class="fragment"><div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="./images/mnist.png"></p>
+<p></p><figcaption>MNIST Sample</figcaption><p></p>
+</figure>
+</div></li>
+</ul>
 </section>
 
 <section id="instability" class="title-slide slide level1 center">
 <h1>Instability</h1>
 <ul>
-<li><p>GANs are difficult to train.</p></li>
-<li><p>The min-max loss function often saturates: the gradients go to zero.</p></li>
-<li><p>This can happen when the discriminator gives an overly confident rejection.</p></li>
+<li class="fragment"><p>GANs are difficult to train even on simple data such as MNIST.</p></li>
+<li class="fragment"><p>Getting a GAN to converge is often a case of “machine teaching”.</p></li>
+<li class="fragment"><p>This is valuable in and of itself - helps construct the mental model of the problem.</p></li>
+<li class="fragment"><p>There are some common GAN instabilities: saturation and mode collapse.</p></li>
 </ul>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1"></a>    <span class="co"># Training saturation</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 </section>
 
-<section id="fixes" class="title-slide slide level1 center">
-<h1>Fixes</h1>
+<section id="loss-saturation" class="title-slide slide level1 center">
+<h1>Loss Saturation</h1>
 <ul>
-<li><p>Adjust learning rate down for the discriminator.</p></li>
-<li><p>Change discriminator complexity.</p></li>
-<li><p>Apply dropout and other regularisation techniques.</p></li>
+<li class="fragment"><p>The min-max loss function often saturates: the gradients go to zero.</p></li>
+<li class="fragment"><p>This can happen when the discriminator gives an overly confident rejection.</p></li>
+<li class="fragment"><p>Less of a problem with Wasserstein Loss GANS.</p></li>
+</ul>
+</section>
+
+<section id="loss-saturation-1" class="title-slide slide level1 center">
+<h1>Loss Saturation</h1>
+
+<img data-src="./images/gan_saturate.gif" class="r-stretch"></section>
+
+<section id="saturation-fixes" class="title-slide slide level1 center">
+<h1>Saturation Fixes</h1>
+<ul>
+<li class="fragment"><p>Adjust learning rate down for the discriminator.</p></li>
+<li class="fragment"><p>Change discriminator complexity.</p></li>
+<li class="fragment"><p>Apply dropout and other regularisation techniques.</p></li>
 </ul>
 </section>
 
 <section id="mode-collapse" class="title-slide slide level1 center">
 <h1>Mode Collapse</h1>
 <ul>
-<li><p>The generator doesn’t know the variability of the data.</p></li>
-<li><p>It can produce a very reliable subset which tricks the generator.</p></li>
-<li><p>This is known as mode-collapse: the target data is a composition of modes.</p></li>
+<li class="fragment"><p>The generator doesn’t know the variability of the data.</p></li>
+<li class="fragment"><p>It can produce a very reliable subset which tricks the generator.</p></li>
+<li class="fragment"><p>This is known as mode-collapse: the target data is a composition of modes.</p></li>
 </ul>
 </section>
 
-<section id="section-2" class="title-slide slide level1 center">
-<h1></h1>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1"></a>    <span class="co"># Mode collapse</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
+<section id="mode-collapse-1" class="title-slide slide level1 center">
+<h1>Mode Collapse</h1>
 
-<section id="fixes-1" class="title-slide slide level1 center">
-<h1>Fixes</h1>
+<img data-src="./images/gan_mode_collapse.gif" class="r-stretch"></section>
+
+<section id="mode-collapse-fixes" class="title-slide slide level1 center">
+<h1>Mode Collapse Fixes</h1>
 <ul>
-<li><p>Increase latent size: more degrees of freedom to optimise.</p></li>
-<li><p>Modify optimiser and learning schedule: a slower rate helps.</p></li>
-<li><p>Regularisation: dropout and normalisation are useful.</p></li>
+<li class="fragment"><p>Increase latent size: more degrees of freedom to optimise.</p></li>
+<li class="fragment"><p>Modify optimiser and learning schedule: a slower rate helps.</p></li>
+<li class="fragment"><p>Regularisation: dropout and normalisation are useful.</p></li>
 </ul>
 </section>
 
 <section id="training-practice" class="title-slide slide level1 center">
 <h1>Training Practice</h1>
 <ul>
-<li><p>GANs should be monitored.</p></li>
-<li><p>Leverage your visual system: loss, discriminator accuracy, and generated data.</p></li>
-<li><p>Generator and discriminator loss should be seperated.</p></li>
-<li><p>Real and fake accuracy should be seperated.</p></li>
+<li class="fragment"><p>GANs should be monitored.</p></li>
+<li class="fragment"><p>Leverage your visual system: loss, discriminator accuracy, and generated data.</p></li>
+<li class="fragment"><p>Generator and discriminator loss should be separated.</p></li>
+<li class="fragment"><p>Real and fake accuracy should be separated.</p></li>
 </ul>
 </section>
+
+<section id="section-3" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/gan_arbitrary_train.gif" class="r-stretch"></section>
 
 <section id="regularisation" class="title-slide slide level1 center">
 <h1>Regularisation</h1>
 <ul>
-<li><p>Mode collapse is often related to Lipschitz continuity being violated in the discriminator.</p></li>
-<li><p>This is most directly controlled with a gradient penalty mechanism.</p></li>
-<li><p>Weight normalisation is often perforemed through spectral Normalisation: $ L += .</p></li>
-<li><p>Discriminator is trained with multiple update for each generator update e.g 5 in Arkovsky et al (2017)</p></li>
-<li><p>Usual regularisation on individual networks: dropout, early stopping etc.</p></li>
+<li class="fragment"><p>Mode collapse is often related to Lipschitz continuity being violated in the discriminator: gradient penalty mechanism.</p></li>
+<li class="fragment"><p>Weight normalisation is often performed through Spectral Normalisation: <span class="math display">\[ L += \sqrt{\Vert W \Vert_1 \Vert W \Vert_\infty} \]</span></p></li>
+</ul>
+</section>
+
+<section id="regularisation-tricks" class="title-slide slide level1 center">
+<h1>Regularisation Tricks</h1>
+<ul>
+<li class="fragment"><p>Discriminator is trained with multiple updates for each generator update.</p></li>
+<li class="fragment"><p>Wasserstein loss (Earth Movers Distance) redefines the game to arbitrary maximimisation - not classification.</p></li>
+<li class="fragment"><p>Usual regularisation on individual networks: dropout, early stopping etc.</p></li>
 </ul>
 </section>
 
 <section id="data-augmentation" class="title-slide slide level1 center">
 <h1>Data Augmentation</h1>
 <ul>
-<li><p>A useful feature of GANs is data augmentation: supplementing data when there is none.</p></li>
-<li><p>We simply generate data by sampling in the latent space and passing it through the generator.</p></li>
-<li><p>This is only useful when we are <em>certain</em> the GAN has converged correctly.</p></li>
-<li><p>Has huge potential for error e.g.&nbsp;mode collapse.</p></li>
-<li><p>Any mismatch between reality and generator will carry to downstream analysis.</p></li>
+<li class="fragment"><p>A useful feature of GANs is data augmentation: supplementing data when there is none.</p></li>
+<li class="fragment"><p>We simply generate data by sampling in the latent space and passing it through the generator.</p></li>
+<li class="fragment"><p>This is only useful when we are <em>certain</em> the GAN has converged correctly -serious error potential.</p></li>
+<li class="fragment"><p>Any mismatch between reality and generator will carry to downstream analysis.</p></li>
+</ul>
+</section>
+
+<section id="problem-how-to-control-variance" class="title-slide slide level1 center">
+<h1>Problem: How to control variance?</h1>
+<ul>
+<li class="fragment"><p>A problem in experimental sciences: day-to-day variance, and experimenter-experimenter variance.</p></li>
+<li class="fragment"><p>Same underlying biology (or other natural phenomena).</p></li>
+<li class="fragment"><p>We would like to remove the bias introduce by different experiments.</p></li>
 </ul>
 </section>
 
 <section id="batch-equalisation" class="title-slide slide level1 center">
 <h1>Batch Equalisation</h1>
 <ul>
-<li><p>A problem in experimental sciences: day-to-day variance, and experimenter-experimenter variance.</p></li>
-<li><p>Same underlying biology (or other natural phenomena).</p></li>
-<li><p>We would like to remove the bias introduce by different experiments.</p></li>
-<li><p>A modern approach is to use GANs as a style transfer for data.</p></li>
-<li><p>The batch data is passed through a generator to look like “real” data which is trained concurrently with a generator.</p></li>
-<li><p>This removes the inter-batch variance and cleans up the dataset.</p></li>
+<li class="fragment"><p>A modern approach is to use GANs as a style transfer for data.</p></li>
+<li class="fragment"><p>The batch data is passed through a generator to look like “real” data which is trained concurrently with a generator.</p></li>
+<li class="fragment"><p>This removes the inter-batch variance and cleans up the dataset.</p></li>
+</ul>
+</section>
+
+<section id="summary" class="title-slide slide level1 center">
+<h1>Summary</h1>
+<ul>
+<li class="fragment"><p>A GAN is a two-player game between a generator model and a discriminator model.</p></li>
+<li class="fragment"><p>The discriminator classifies real/fake data and the generator plays to trick it.</p></li>
+<li class="fragment"><p>The game is globally minimised when the generator matches the data-generating distribution.</p></li>
+<li class="fragment"><p>The generator can be used to analyse a distribution, augment/generate data, and normalise datasets.</p></li>
 </ul>
 </section>
 
 <section id="references" class="title-slide slide level1 center">
 <h1>References</h1>
-<p><a href="https://proceedings.neurips.cc/paper/2014/file/5ca3e9b122f61f8f06494c97b1afccf3-Paper.pdf">Generative Adversarial Nets</a> <a href="https://proceedings.mlr.press/v70/arjovsky17a.html">Wasserstein generative adversarial networks, Arkovsky et. al.&nbsp;(2017)</a> <a href="https://academic.oup.com/bioinformatics/article/36/Supplement_2/i875/6055901">Batch equalization with a generative adversarial network, Qian et. al.&nbsp;2020</a></p>
+<p><a href="https://proceedings.neurips.cc/paper/2014/file/5ca3e9b122f61f8f06494c97b1afccf3-Paper.pdf">Generative Adversarial Nets, Goodfellow et. al.&nbsp;(2014)</a></p>
+<p><a href="https://proceedings.mlr.press/v70/arjovsky17a.html">Wasserstein generative adversarial networks, Arkovsky et. al.&nbsp;(2017)</a></p>
+<p><a href="https://academic.oup.com/bioinformatics/article/36/Supplement_2/i875/6055901">Batch equalization with a generative adversarial network, Qian et. al.&nbsp;(2020)</a></p>
 <div class="footer footer-default">
 
 </div>
@@ -639,6 +745,7 @@ Nicholas Gale and Stephen Eglen
   <script src="lecture9_GANS_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
   <script src="lecture9_GANS_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
   <script src="lecture9_GANS_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="lecture9_GANS_files/libs/revealjs/plugin/reveal-chalkboard/plugin.js"></script>
   <script src="lecture9_GANS_files/libs/revealjs/plugin/quarto-support/support.js"></script>
   
 
@@ -660,7 +767,8 @@ Nicholas Gale and Stephen Eglen
 'autoAnimateEasing': "ease",
 'autoAnimateDuration': 1,
 'autoAnimateUnmatched': true,
-'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleChalkboard(event)\"><kbd>b</kbd> Toggle Chalkboard</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleNotesCanvas(event)\"><kbd>c</kbd> Toggle Notes Canvas</a></li>\n<li class=\"slide-tool-item\" data-item=\"6\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.downloadDrawings(event)\"><kbd>d</kbd> Download Drawings</a></li>\n<li class=\"slide-tool-item\" data-item=\"7\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'chalkboard': {"buttons":true},
 'smaller': false,
  
         // Display controls in the bottom right corner
@@ -681,7 +789,7 @@ Nicholas Gale and Stephen Eglen
         progress: true,
 
         // Display the page number of the current slide
-        slideNumber: false,
+        slideNumber: 'c/t',
 
         // 'all', 'print', or 'speaker'
         showSlideNumber: 'all',
@@ -831,7 +939,7 @@ Nicholas Gale and Stephen Eglen
         },
 
         // reveal.js plugins
-        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, RevealChalkboard, QuartoSupport,
 
           RevealMath,
           RevealNotes,
