@@ -37,7 +37,7 @@ format:
 
 # Components
 
-* Suppose the data are generated from some distribution: $$ x \sim \text{Dist}(\alpha...) $$ 
+* Suppose the data are generated from some distribution: $$ x \sim \text{Dist}_\text{Data}(\alpha...) $$ 
 
 :::{.incremental}
 
@@ -93,11 +93,13 @@ format:
 
 * Desirable to use data to inform network architecture.
 
+* `ConvTranspose` is a usual Flux layer for generator.
+
 # Loss Functions
 
 * The discriminator is acting as a binary classifier.
 
-* The natural loss function is `logitcrossentropy`: $$ L = -E_{x\in\text{Dist}_\text{Data}} [\log(D(x))] - E_{y \in \text{Dist}_\text{Gen}}[\log(1-D(G(z))]$$
+* The natural loss function is `logitbinarycrossentropy`: $$ L = -E_{x\in\text{Dist}_\text{Data}} [\log(D(x))] - E_{y \in \text{Dist}_\text{Gen}}[\log(1-D(G(z))]$$
 
 # Discriminator Loss
 
@@ -140,7 +142,7 @@ Consider a non-trivial probability distribution:
 ```{julia }
 #| echo: true
 #| eval: false
-#| code-line-numbers: "3,4,9,10"
+#| code-line-numbers: "1,2,3,4,9,10"
 D(samples) = Chain(Dense(samples=>100, relu), Dense(100=>50, relu), Dense(50=>1, σ))
 G(input, samples) = Chain(Dense(input=>50, relu), Dense(50=>1000, relu), Dense(1000=>samples, x->0.5*tanh(x), bias=false))
 lossD(x, y, dsc) = -mean(y.*log.(dsc(x))) .- mean((1 .- y).*log.(1 .- dsc(x)))
@@ -185,6 +187,33 @@ end
 * This is valuable in and of itself - helps construct the mental model of the problem.
 
 * There are some common GAN instabilities: saturation and mode collapse.
+
+# Code
+
+```{julia}
+
+distinit(shape...) = randn(Float32, shape) * 0.025f0
+
+discriminator = Chain(
+        Conv((4, 4), 1 => 64; stride = 2, pad = SamePad(), init = distinit), x->leakyrelu.(x, 0.2f0),
+        Dropout(0.3),
+        Conv((4, 4), 64 => 128; stride = 2, pad = SamePad(), init = distinit), x->leakyrelu.(x, 0.2f0),
+        Dropout(0.3),
+        Flux.flatten,
+        Dense(7 * 7 * 128, 1) 
+    ) |> device
+
+generator = Chain(
+        Dense(latent_dim, 7*7*256, bias=false),
+        BatchNorm(7*7*256, relu),
+        x -> reshape(x, 7, 7, 256, :),
+        ConvTranspose((5, 5), 256 => 128; stride = 1, pad = SamePad(), init = distinit, bias=false),
+        BatchNorm(128, relu),
+        ConvTranspose((5, 5), 128 => 64; stride = 2, pad = SamePad(), init = distinit, bias=false),
+        BatchNorm(64, relu),
+        ConvTranspose((5, 5), 64 => 1, tanh; stride = 2, pad = SamePad(), init = distinit, bias=false),
+    ) |> device
+```
 
 # Loss Saturation
 
@@ -260,7 +289,7 @@ end
 
 * We simply generate data by sampling in the latent space and passing it through the generator.
 
-* This is only useful when we are *certain* the GAN has converged correctly -serious error potential.
+* This is only useful when we are *certain* the GAN has converged correctly - serious error potential.
 
 * Any mismatch between reality and generator will carry to downstream analysis.
 
@@ -270,15 +299,19 @@ end
 
 * Same underlying biology (or other natural phenomena).
 
-* We would like to remove the bias introduce by different experiments.
+* We would like to remove the bias introduced by different experiments.
 
 # Batch Equalisation
 
 * A modern approach is to use GANs as a style transfer for data.
 
-* The batch data is passed through a generator to look like "real" data which is trained concurrently with a generator.
+* Each batch of data is assumed to have some underlying constant semantics.
 
-* This removes the inter-batch variance and cleans up the dataset. 
+* Each batch has natural bias and variance introduced by batch effect.
+
+* Train a generator to map each batch to a target batch - style transfer.
+
+* This removes the batch effect and increases analysis power.
 
 # Summary
 

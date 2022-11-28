@@ -1,14 +1,18 @@
 ---
 title: "Generative Adverserial Networks"
 subtitle: "Generative Modelling with Neural Networks"
-author: "Nicholas Gale" 
+author: "Nicholas Gale and Stephen Eglen" 
 engine: jupyter
 execute:
   echo: true
 format:
   revealjs:
     keep-tex: true
-    monofont: "JuliaMono"
+    slide-number: true
+    theme: [serif, custom.scss]
+    chalkboard: true 
+    backgroundcolor: white
+    incremental: true
 ---
 
 # Traditional Sequence Analysis
@@ -25,15 +29,15 @@ format:
 
 * LSTMs: forget gates to preserve information.
 
-* Gated Recurrent Units: similar to LSTM but 
+* Gated Recurrent Units: similar to LSTM forget gates but no output. 
 
-* Other proposals: none ideal, all sequential. 
+* Other proposals: none ideal due to O(n) complexity.
 
 # Transformers
 
-* Transformers are the latest development in large scale sequence analysis.
-
 * "Attention is all you need" (2016)
+
+* Transformers are the latest development in large scale sequence analysis.
 
 * Address many problems with RNNs
 
@@ -53,7 +57,7 @@ format:
 
 * For each vector pair compute the dot product between them.
 
-* For each vector $x_i$ find relations with all other vectors $x_j$ using Hebb rule and normalise with `softmax`. $$ a_{ij} = x_i^T x_j $$ $$ A_{ij} = \frac{\exp(a)_{ij})}{\sum_j \exp(a)_{ij} $$
+* For each vector $x_i$ find relations with all other vectors $x_j$ using Hebb rule and normalise with `softmax`. $$ a_{ij} = x_i^T x_j $$ $$ A_{ij} = \frac{\exp(a_{ij})}{\sum_j \exp(a)_{ij}} $$
 
 # Querys and Keys
 
@@ -61,7 +65,7 @@ format:
 
 * The product $x_i^Tx_j$ will be one only in the indexes $i=j$.
 
-* Therefore, this operation is acting like a look-up table.
+* This operation is acting like a look-up table.
 
 * Transformers inherit the language and call these *keys* and *queries*.
 
@@ -100,6 +104,12 @@ format:
 * The input sequence tokens are first wrapped by "Start" and "End" tokens and encoded by the Vocabulary. 
 
 * This encoded representation is embedded into vectors of length $v$.
+
+```{julia}
+#| echo: false
+#| eval: true
+using Transformers;
+```
 
 ::: {.fragment}
 ```{julia}
@@ -184,6 +194,7 @@ em_postional_seq = embedded_seq .+ postitional_embedder(embedded_seq)
 
 :::{.fragment}
 ```{julia}
+#| eval: false
 encoder_block = Transformers.Transformer(model_d, n_heads, head_d, inner_d)
 encoder_block_output = encoder_block(block_input)
 encoder = Chain(block1, ..., blockn)

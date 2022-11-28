@@ -1,15 +1,18 @@
-
 ---
 title: "Graph Neural Networks"
-subtitle: "The True BluePrint"
-author: "Nicholas Gale" 
+subtitle: "The Blueprint Neural Networks"
+author: "Nicholas Gale and Stephen Eglen" 
 engine: jupyter
 execute:
   echo: true
 format:
   revealjs:
     keep-tex: true
-    monofont: "JuliaMono"
+    slide-number: true
+    theme: [serif, custom.scss]
+    chalkboard: true 
+    backgroundcolor: white
+    incremental: true
 ---
 
 # Graphs

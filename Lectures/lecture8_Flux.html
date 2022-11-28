@@ -449,22 +449,12 @@ Nicholas Gale and Stephen Eglen
 </ul>
 </section>
 
-<section id="gradient-descent-and-momentum" class="title-slide slide level1 center">
-<h1>Gradient Descent and Momentum</h1>
-<ul>
-<li class="fragment"><p>Gradient descent is defined as: <span class="math display">\[W_{t+1} = W_t - \eta \frac{\partial L}{\partial W} \]</span></p></li>
-<li class="fragment"><p>Gradient descent may be accelerated by momentum.</p></li>
-<li class="fragment"><p>Flux has support for multiple optimisers through an optimiser object class: <code>opt(lr, hyperparams)</code></p></li>
-<li class="fragment"><p><code>Descent(lr), Momentum(lr, alp), ADAM()</code></p></li>
-</ul>
-</section>
-
 <section id="differentitation" class="title-slide slide level1 center">
 <h1>Differentitation</h1>
 <ul>
 <li class="fragment"><p>Backbone of machine learning.</p></li>
 <li class="fragment"><p>Newtons method or gradient descent is an optimisation method.</p></li>
-<li class="fragment"><p>Can be computed symbolically, numerically, or automatically: <span class="math display">\[ \frac{df}{dx} = \lim_{x\rightarrow 0} \frac{f(x+h) - f(x)}{h} \]</span></p></li>
+<li class="fragment"><p>Can be computed symbolically, numerically, or automatically: <span class="math display">\[ \frac{df}{dx} = \lim_{h\rightarrow 0} \frac{f(x+h) - f(x)}{h} \]</span></p></li>
 </ul>
 </section>
 
@@ -505,11 +495,11 @@ Nicholas Gale and Stephen Eglen
 <span id="cb1-4"><a href="#cb1-4"></a>x <span class="op">=</span> <span class="fu">rand</span>(<span class="fl">2</span>,<span class="fl">1</span>)</span>
 <span id="cb1-5"><a href="#cb1-5"></a></span>
 <span id="cb1-6"><a href="#cb1-6"></a><span class="co"># a single instance</span></span>
-<span id="cb1-7"><a href="#cb1-7"></a>dfdw <span class="op">=</span> <span class="fu">gradient</span>(()<span class="fu">-&gt;f</span>(x), Flux.<span class="fu">Params</span>(W))</span>
+<span id="cb1-7"><a href="#cb1-7"></a>dfdw <span class="op">=</span> <span class="fu">gradient</span>(()<span class="fu">-&gt;f</span>(x), Flux.<span class="fu">params</span>(W))</span>
 <span id="cb1-8"><a href="#cb1-8"></a></span>
 <span id="cb1-9"><a href="#cb1-9"></a><span class="co"># as a do block</span></span>
 <span id="cb1-10"><a href="#cb1-10"></a></span>
-<span id="cb1-11"><a href="#cb1-11"></a>g <span class="op">=</span> <span class="fu">gradient</span>(Flux.<span class="fu">Params</span>(W)) <span class="cf">do</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>g <span class="op">=</span> <span class="fu">gradient</span>(Flux.<span class="fu">params</span>(W)) <span class="cf">do</span></span>
 <span id="cb1-12"><a href="#cb1-12"></a>    <span class="fu">f</span>(x)</span>
 <span id="cb1-13"><a href="#cb1-13"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="2">
@@ -518,6 +508,16 @@ Nicholas Gale and Stephen Eglen
 </div>
 <ul>
 <li class="fragment">Do blocks are particularly useful for defining callback functions to monitor progress.</li>
+</ul>
+</section>
+
+<section id="gradient-descent-and-momentum" class="title-slide slide level1 center">
+<h1>Gradient Descent and Momentum</h1>
+<ul>
+<li class="fragment"><p>Gradient descent is defined as: <span class="math display">\[W_{t+1} = W_t - \eta \frac{\partial L}{\partial W} \]</span></p></li>
+<li class="fragment"><p>Gradient descent may be accelerated by momentum.</p></li>
+<li class="fragment"><p>Flux has support for multiple optimisers through an optimiser object class: <code>opt(lr, hyperparams)</code></p></li>
+<li class="fragment"><p><code>Descent(lr), Momentum(lr, alp), ADAM()</code></p></li>
 </ul>
 </section>
 
@@ -572,13 +572,13 @@ Nicholas Gale and Stephen Eglen
 <span id="cb3-8"><a href="#cb3-8"></a>    <span class="kw">end</span></span>
 <span id="cb3-9"><a href="#cb3-9"></a><span class="kw">end</span></span>
 <span id="cb3-10"><a href="#cb3-10"></a><span class="co"># overload object definition</span></span>
-<span id="cb3-11"><a href="#cb3-11"></a>(obj<span class="op">::</span><span class="dt">CustomDense</span>)(x) <span class="op">=</span> obj.W <span class="op">*</span> x <span class="op">.+</span> obj. b</span>
+<span id="cb3-11"><a href="#cb3-11"></a>(obj<span class="op">::</span><span class="dt">CustomDense</span>)(x) <span class="op">=</span> obj.W <span class="op">*</span> x <span class="op">.+</span> obj.b</span>
 <span id="cb3-12"><a href="#cb3-12"></a>dense <span class="op">=</span> <span class="fu">CustomDense</span>(<span class="fl">5</span>,<span class="fl">2</span>)</span>
 <span id="cb3-13"><a href="#cb3-13"></a><span class="fu">dense</span>(<span class="fu">rand</span>(<span class="fl">5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>2-element Vector{Float64}:
- 1.3095750872226433
- 1.4667669028658676</code></pre>
+ 0.38609011196942344
+ 1.7445256031830105</code></pre>
 </div>
 </div>
 </section>
@@ -595,7 +595,7 @@ Nicholas Gale and Stephen Eglen
 <section id="conv" class="title-slide slide level1 center">
 <h1>Conv</h1>
 <ul>
-<li class="fragment"><p>The convolutional layer is specified with <code>Conv((kerneldim1, kerneldim))</code></p></li>
+<li class="fragment"><p>The convolutional layer is specified with <code>Conv((kerneldim1, kerneldim), featuresin=&gt;featuresout)</code></p></li>
 <li class="fragment"><p>It accepts keywords <code>stride=(s1,s2)</code>, <code>pad=(p1, p2)</code>, <code>dilation=(d1,d2)</code>, <code>bias</code>, <code>activation</code>.</p></li>
 <li class="fragment"><p>The layer accepts a 4D tensor: x dimension, y dimension, feature dimension, and data-index.</p></li>
 </ul>
@@ -616,7 +616,7 @@ Nicholas Gale and Stephen Eglen
 <h1>Chain: Composing a model</h1>
 <ul>
 <li class="fragment"><p>Composing a model is simply a chain of layers.</p></li>
-<li class="fragment"><p>Flux allows this to be intutively done with chain: <code>model(x) = Chain(Dense(10=&gt;3), Dense(3=5))</code></p></li>
+<li class="fragment"><p>Flux allows this to be intutively done with chain: <code>model(x) = Chain(Dense(10=&gt;3), Dense(3=&gt;5))</code></p></li>
 <li class="fragment"><p>A generically complex model can be given by a function <code>f</code>.</p></li>
 <li class="fragment"><p>Flux can be told this complex function is a model with <code>@functor f</code>.</p></li>
 </ul>
@@ -656,7 +656,7 @@ Nicholas Gale and Stephen Eglen
 <ul>
 <li class="fragment"><p>We have a model, data, optimisers, and loss functions and can now update parameters.</p></li>
 <li class="fragment"><p><code>update!</code> takes an optimiser, gradient values, and updates specified parameters.</p></li>
-<li class="fragment"><p><code>update!(opt, Flux.Params(w...), grad)</code></p></li>
+<li class="fragment"><p><code>update!(opt, Flux.params(w...), grad)</code></p></li>
 <li class="fragment"><p>This can be applied through a loop over the data where the gradient is repeatedly computed.</p></li>
 </ul>
 </section>
@@ -666,7 +666,7 @@ Nicholas Gale and Stephen Eglen
 <ul>
 <li class="fragment"><p>An even easier API to work with is <code>train!</code>.</p></li>
 <li class="fragment"><p>It accepts a loss function, parameters, a data generator, and optimiser.</p></li>
-<li class="fragment"><p><code>train!(loss, Flux.Params(w...), data, opt)</code></p></li>
+<li class="fragment"><p><code>train!(loss, Flux.params(w...), data, opt)</code></p></li>
 </ul>
 </section>
 
@@ -760,7 +760,7 @@ Nicholas Gale and Stephen Eglen
 <span id="cb8-8"><a href="#cb8-8"></a>pred_labels <span class="op">=</span> [labels[predictions[i]] for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(predictions)]</span>
 <span id="cb8-9"><a href="#cb8-9"></a><span class="pp">@show</span> acc <span class="op">=</span> <span class="fu">sum</span>(pred_labels <span class="op">.==</span> data[<span class="st">"test_labels"</span>])<span class="op">/</span><span class="fu">length</span>(pred_labels);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> 30.864856 seconds (39.50 M allocations: 10.090 GiB, 7.03% gc time, 55.85% compilation time)</code></pre>
+<pre><code> 30.337100 seconds (39.47 M allocations: 10.089 GiB, 7.34% gc time, 56.53% compilation time)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>acc = sum(pred_labels .== data["test_labels"]) / length(pred_labels) = 0.8</code></pre>
