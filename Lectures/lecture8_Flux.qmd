@@ -30,7 +30,7 @@ format:
 
 * It is hackable, extensible, and provides nice syntatic sugar.
 
-* Relies on `Zygote` which is an automatic differentation package.
+* Relies on `Zygote` which is an automatic differentitation package.
 
 # Lecture Outcomes
 
@@ -46,9 +46,27 @@ format:
 
 * Loss functions allow objective of the network to be found.
 
-* Constructed to measure difference between regressor and datas.
+* Constructed to measure difference between regressors and data.
 
 * Common loss functions are `mse`, `logitcrossentropy`, `binarycrossentropy`, etc.
+
+# Optimisation
+
+* A loss function may be optimised in any way.
+
+* The random sampling method is as efficient as any for finding *global* minima.
+
+* Finding local minima (or just reducing loss) is most often done through gradient descent.
+
+# Gradient Descent and Momentum
+
+* Gradient descent is defined as: $$W_{t+1} = W_t - \eta \frac{\partial L}{\partial W} $$
+
+* Gradient descent may be accelerated by momentum.
+
+* Flux has support for multiple optimisers through an optimiser object class: `opt(lr, hyperparams)`
+
+* `Descent(lr), Momentum(lr, alp), ADAM()`
 
 # Differentitation
 
@@ -105,23 +123,6 @@ end
 
 * Do blocks are particularly useful for defining callback functions to monitor progress.
 
-# Optimisation
-
-* A loss function may be optimised in any way.
-
-* The random sampling method is as efficient as any for finding *global* minima.
-
-* Finding local minima (or just reducing loss) is most often done through gradient descent.
-
-# Gradient Descent and Momentum
-
-* Gradient descent is defined as: $$W_{t+1} = W_t - \eta \frac{\partial L}{\partial W} $$
-
-* Gradient descent may be accelerated by momentum.
-
-* Flux has support for multiple optimisers through an optimiser object class: `opt(lr, hyperparams)`
-
-* `Descent(lr), Momentum(lr, alp), ADAM()`
 
 #
 
@@ -139,7 +140,7 @@ end
 
 * The activation function mimics the firing rate of a neuron.
 
-* It provides a non-linearity to allow complex learning manifolds.
+* It provides a non-linearity to allow for complex learning manifolds.
 
 * Flux supports all the common functions: `tanh`, `relu`, `σ`, etc.
 
@@ -185,7 +186,7 @@ dense(rand(5))
 
 * API is `Dense(dimsin => dimsout)`.
 
-* Optional keywords are `bias=true/false`, and activation functions
+* Optional keywords are `bias=true/false`, and `activation`. 
 
 # Conv
 

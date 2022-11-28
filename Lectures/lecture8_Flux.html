@@ -417,7 +417,7 @@ Nicholas Gale and Stephen Eglen
 <ul>
 <li class="fragment"><p>Flux is a Julia package.</p></li>
 <li class="fragment"><p>It is hackable, extensible, and provides nice syntatic sugar.</p></li>
-<li class="fragment"><p>Relies on <code>Zygote</code> which is an automatic differentation package.</p></li>
+<li class="fragment"><p>Relies on <code>Zygote</code> which is an automatic differentitation package.</p></li>
 </ul>
 </section>
 
@@ -435,8 +435,27 @@ Nicholas Gale and Stephen Eglen
 <h1>Loss Functions</h1>
 <ul>
 <li class="fragment"><p>Loss functions allow objective of the network to be found.</p></li>
-<li class="fragment"><p>Constructed to measure difference between regressor and datas.</p></li>
+<li class="fragment"><p>Constructed to measure difference between regressors and data.</p></li>
 <li class="fragment"><p>Common loss functions are <code>mse</code>, <code>logitcrossentropy</code>, <code>binarycrossentropy</code>, etc.</p></li>
+</ul>
+</section>
+
+<section id="optimisation" class="title-slide slide level1 center">
+<h1>Optimisation</h1>
+<ul>
+<li class="fragment"><p>A loss function may be optimised in any way.</p></li>
+<li class="fragment"><p>The random sampling method is as efficient as any for finding <em>global</em> minima.</p></li>
+<li class="fragment"><p>Finding local minima (or just reducing loss) is most often done through gradient descent.</p></li>
+</ul>
+</section>
+
+<section id="gradient-descent-and-momentum" class="title-slide slide level1 center">
+<h1>Gradient Descent and Momentum</h1>
+<ul>
+<li class="fragment"><p>Gradient descent is defined as: <span class="math display">\[W_{t+1} = W_t - \eta \frac{\partial L}{\partial W} \]</span></p></li>
+<li class="fragment"><p>Gradient descent may be accelerated by momentum.</p></li>
+<li class="fragment"><p>Flux has support for multiple optimisers through an optimiser object class: <code>opt(lr, hyperparams)</code></p></li>
+<li class="fragment"><p><code>Descent(lr), Momentum(lr, alp), ADAM()</code></p></li>
 </ul>
 </section>
 
@@ -493,31 +512,12 @@ Nicholas Gale and Stephen Eglen
 <span id="cb1-11"><a href="#cb1-11"></a>g <span class="op">=</span> <span class="fu">gradient</span>(Flux.<span class="fu">Params</span>(W)) <span class="cf">do</span></span>
 <span id="cb1-12"><a href="#cb1-12"></a>    <span class="fu">f</span>(x)</span>
 <span id="cb1-13"><a href="#cb1-13"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
+<div class="cell-output cell-output-display" data-execution_count="2">
 <pre><code>Grads(...)</code></pre>
 </div>
 </div>
 <ul>
 <li class="fragment">Do blocks are particularly useful for defining callback functions to monitor progress.</li>
-</ul>
-</section>
-
-<section id="optimisation" class="title-slide slide level1 center">
-<h1>Optimisation</h1>
-<ul>
-<li class="fragment"><p>A loss function may be optimised in any way.</p></li>
-<li class="fragment"><p>The random sampling method is as efficient as any for finding <em>global</em> minima.</p></li>
-<li class="fragment"><p>Finding local minima (or just reducing loss) is most often done through gradient descent.</p></li>
-</ul>
-</section>
-
-<section id="gradient-descent-and-momentum" class="title-slide slide level1 center">
-<h1>Gradient Descent and Momentum</h1>
-<ul>
-<li class="fragment"><p>Gradient descent is defined as: <span class="math display">\[W_{t+1} = W_t - \eta \frac{\partial L}{\partial W} \]</span></p></li>
-<li class="fragment"><p>Gradient descent may be accelerated by momentum.</p></li>
-<li class="fragment"><p>Flux has support for multiple optimisers through an optimiser object class: <code>opt(lr, hyperparams)</code></p></li>
-<li class="fragment"><p><code>Descent(lr), Momentum(lr, alp), ADAM()</code></p></li>
 </ul>
 </section>
 
@@ -539,7 +539,7 @@ Nicholas Gale and Stephen Eglen
 <h1>Activation Functions</h1>
 <ul>
 <li class="fragment"><p>The activation function mimics the firing rate of a neuron.</p></li>
-<li class="fragment"><p>It provides a non-linearity to allow complex learning manifolds.</p></li>
+<li class="fragment"><p>It provides a non-linearity to allow for complex learning manifolds.</p></li>
 <li class="fragment"><p>Flux supports all the common functions: <code>tanh</code>, <code>relu</code>, <code>σ</code>, etc.</p></li>
 </ul>
 </section>
@@ -575,10 +575,10 @@ Nicholas Gale and Stephen Eglen
 <span id="cb3-11"><a href="#cb3-11"></a>(obj<span class="op">::</span><span class="dt">CustomDense</span>)(x) <span class="op">=</span> obj.W <span class="op">*</span> x <span class="op">.+</span> obj. b</span>
 <span id="cb3-12"><a href="#cb3-12"></a>dense <span class="op">=</span> <span class="fu">CustomDense</span>(<span class="fl">5</span>,<span class="fl">2</span>)</span>
 <span id="cb3-13"><a href="#cb3-13"></a><span class="fu">dense</span>(<span class="fu">rand</span>(<span class="fl">5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>2-element Vector{Float64}:
- 1.4176773873491322
- 2.7356262786456966</code></pre>
+ 1.3095750872226433
+ 1.4667669028658676</code></pre>
 </div>
 </div>
 </section>
@@ -588,7 +588,7 @@ Nicholas Gale and Stephen Eglen
 <ul>
 <li class="fragment"><p>The dense layer represents the all-to-all connections.</p></li>
 <li class="fragment"><p>API is <code>Dense(dimsin =&gt; dimsout)</code>.</p></li>
-<li class="fragment"><p>Optional keywords are <code>bias=true/false</code>, and activation functions</p></li>
+<li class="fragment"><p>Optional keywords are <code>bias=true/false</code>, and <code>activation</code>.</p></li>
 </ul>
 </section>
 
@@ -731,7 +731,7 @@ Nicholas Gale and Stephen Eglen
 <span id="cb7-10"><a href="#cb7-10"></a>Flux.<span class="fu">Conv</span>((<span class="fl">10</span>,<span class="fl">10</span>), <span class="fl">5</span> <span class="op">=&gt;</span> <span class="fl">7</span>, relu), </span>
 <span id="cb7-11"><a href="#cb7-11"></a>Flux.flatten,</span>
 <span id="cb7-12"><a href="#cb7-12"></a><span class="fu">Dense</span>(<span class="fl">112</span>, <span class="fu">length</span>(<span class="fu">unique</span>(training_labels)), σ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
+<div class="cell-output cell-output-display" data-execution_count="6">
 <div class="ansi-escaped-output">
 <pre>Chain(
   Conv((3, 3), 3 =&gt; 10, relu),          <span class="ansi-bright-black-fg"># 280 parameters</span>
@@ -760,7 +760,7 @@ Nicholas Gale and Stephen Eglen
 <span id="cb8-8"><a href="#cb8-8"></a>pred_labels <span class="op">=</span> [labels[predictions[i]] for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(predictions)]</span>
 <span id="cb8-9"><a href="#cb8-9"></a><span class="pp">@show</span> acc <span class="op">=</span> <span class="fu">sum</span>(pred_labels <span class="op">.==</span> data[<span class="st">"test_labels"</span>])<span class="op">/</span><span class="fu">length</span>(pred_labels);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> 16.100454 seconds (721.77 k allocations: 8.219 GiB, 13.21% gc time, 7.64% compilation time)</code></pre>
+<pre><code> 30.864856 seconds (39.50 M allocations: 10.090 GiB, 7.03% gc time, 55.85% compilation time)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>acc = sum(pred_labels .== data["test_labels"]) / length(pred_labels) = 0.8</code></pre>
