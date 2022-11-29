@@ -435,17 +435,31 @@ Nicholas Gale and Stephen Eglen
 <h1>Attention: bare bones</h1>
 <ul>
 <li class="fragment"><p>Transformers leverage the idea of attention: not new.</p></li>
-<li class="fragment"><p>Attention is computed between all elements in a sequence: a weighted relationship between elements.</p></li>
+<li class="fragment"><p>Attention is computed between all elements in a sequence: a weighted relationship between locations.</p></li>
 <li class="fragment"><p>All units are considered independently: massive parallelisation.</p></li>
 </ul>
 </section>
 
-<section id="attention-bare-bones-1" class="title-slide slide level1 center">
-<h1>Attention: bare bones</h1>
+<section id="attention" class="title-slide slide level1 center">
+<h1>Attention</h1>
 <ul>
-<li class="fragment"><p>Simple attention is similar to constructing the Hopfield network weights.</p></li>
-<li class="fragment"><p>For each vector pair compute the dot product between them.</p></li>
-<li class="fragment"><p>For each vector <span class="math inline">\(x_i\)</span> find relations with all other vectors <span class="math inline">\(x_j\)</span> using Hebb rule and normalise with <code>softmax</code>. <span class="math display">\[ a_{ij} = x_i^T x_j \]</span> <span class="math display">\[ A_{ij} = \frac{\exp(a_{ij})}{\sum_j \exp(a)_{ij}} \]</span></p></li>
+<li class="fragment"><p>Simple attention relies on nothing more than a Euclidean projection: dot product.</p></li>
+<li class="fragment"><p><img data-src="./images/dot_product.png"></p></li>
+</ul>
+</section>
+
+<section id="simple-attention-computation" class="title-slide slide level1 center">
+<h1>Simple attention: computation</h1>
+<ul>
+<li class="fragment">For each vector pair compute the dot product between them and normalise over all pairs with <code>softmax</code>. <span class="math display">\[ a_{ij} = x_i^T x_j \]</span> <span class="math display">\[ A_{ij} = \frac{\exp(a_{ij})}{\sum_j \exp(a)_{ij}} \]</span></li>
+</ul>
+</section>
+
+<section id="attention-retrevial" class="title-slide slide level1 center">
+<h1>Attention Retrevial</h1>
+<ul>
+<li class="fragment"><p>An input is weighted by the row of the attention matrix corresponding to its index.</p></li>
+<li class="fragment"><p>The ouput is the weighted sum of all vectors by this attention row: <span class="math display">\[ y_i = \sum_j A_{ij} x_j \]</span></p></li>
 </ul>
 </section>
 
@@ -459,32 +473,38 @@ Nicholas Gale and Stephen Eglen
 </ul>
 </section>
 
-<section id="attention-retrevial" class="title-slide slide level1 center">
-<h1>Attention Retrevial</h1>
-<ul>
-<li class="fragment"><p>An input is weighted by the row of the attention matrix corresponding to its index.</p></li>
-<li class="fragment"><p>The ouput is the weighted sum of all vectors by this attention row: <span class="math display">\[ y_i = \sum_j A_{ij} x_j \]</span></p></li>
-</ul>
-</section>
-
 <section id="attention-generalised" class="title-slide slide level1 center">
 <h1>Attention Generalised</h1>
 <ul>
-<li class="fragment"><p>We would like to let the keys, queries, and values not be fully determined by a lookup value.</p></li>
+<li class="fragment"><p>We would like to let the keys, queries, and values not be fully determined by Euclidean representation.</p></li>
 <li class="fragment"><p>We imagine them as linear transforms of the total dictionary embedding values into a new space.</p></li>
-<li class="fragment"><p>Therefore, they are matrices <span class="math inline">\((W^K, W^Q, W^V)\)</span> with a size <span class="math inline">\(v \times d\)</span>.</p></li>
 <li class="fragment"><p>This allows us to compress our key/query/value representation to a lower dimensionality.</p></li>
 </ul>
 </section>
 
-<section id="transformers-1" class="title-slide slide level1 center">
-<h1>Transformers</h1>
+<section id="section" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/embedding_dimension.png" class="r-stretch"></section>
+
+<section id="transformers-bare-bones" class="title-slide slide level1 center">
+<h1>Transformers Bare Bones</h1>
 <ul>
 <li class="fragment"><p>The transformer model is composed of two attentional models: an encoder and decoder.</p></li>
 <li class="fragment"><p>Input is in the form of vectors of tokens e.g.&nbsp;genome sequence.</p></li>
 <li class="fragment"><p>The encoder transforms input to an encoded attentional sequence.</p></li>
 <li class="fragment"><p>The decoder autoregressively uses the encoder ouput to an ouput sequence.</p></li>
 <li class="fragment"><p>The output sequence is decoded with a decoder dictionary e.g.&nbsp;amino acids.</p></li>
+</ul>
+</section>
+
+<section id="transfomers.jl" class="title-slide slide level1 center">
+<h1>Transfomers.jl</h1>
+<ul>
+<li class="fragment"><p><code>Transformers.jl</code> is built on top of Flux.</p></li>
+<li class="fragment"><p>It has similar GPU support (and similiar drawbacks).</p></li>
+<li class="fragment"><p>Similar grammar but there are subtleties - documentation is helpful!</p></li>
+<li class="fragment"><p>Open source contribution - documentation could be added to! Anyone can do this.</p></li>
 </ul>
 </section>
 
@@ -495,10 +515,14 @@ Nicholas Gale and Stephen Eglen
 <li class="fragment"><p>The input sequence tokens are first wrapped by “Start” and “End” tokens and encoded by the Vocabulary.</p></li>
 <li class="fragment"><p>This encoded representation is embedded into vectors of length <span class="math inline">\(v\)</span>.</p></li>
 </ul>
+</section>
+
+<section id="section-1" class="title-slide slide level1 center">
+<h1></h1>
 <div class="fragment">
 <div class="cell" data-incremental="true" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1"></a>tokenizer <span class="op">=</span> <span class="fu">Vocabulary</span>(labels, unknown_symbol)</span>
-<span id="cb1-2"><a href="#cb1-2"></a>sequence <span class="op">=</span> [start, sample_sequence_tokens<span class="op">...</span>, <span class="kw">end</span>]</span>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1"></a>tokenizer <span class="op">=</span> Transformers.<span class="fu">Vocabulary</span>(labels, unknown_symbol)</span>
+<span id="cb1-2"><a href="#cb1-2"></a>sequence <span class="op">=</span> [start_token, sample_sequence_tokens<span class="op">...</span>, end_token]</span>
 <span id="cb1-3"><a href="#cb1-3"></a>encoded_sequence <span class="op">=</span> <span class="fu">tokenizer</span>(sequence)</span>
 <span id="cb1-4"><a href="#cb1-4"></a>embedder <span class="op">=</span> Transformers.<span class="fu">Embed</span>(<span class="fl">512</span>, <span class="fu">length</span>(tokenizer)</span>
 <span id="cb1-5"><a href="#cb1-5"></a>embedded_seq <span class="op">=</span> <span class="fu">embedder</span>(encoded_sequence)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -515,35 +539,70 @@ Nicholas Gale and Stephen Eglen
 </ul>
 </section>
 
-<section id="section" class="title-slide slide level1 center">
+<section id="section-2" class="title-slide slide level1 center">
 <h1></h1>
 <ul>
 <li class="fragment">Positional encodings can be learnt but typically use a fucntion: <span class="math display">\[ p_{2k}(i) = cos(i/10000^k) \]</span> <span class="math display">\[ p_{2k+1}(i) = sin(i/10000^k) \]</span></li>
 </ul>
 <div class="fragment">
-<p>positional_embedder = Position(512) em_postional_seq = embedded_seq .+ postitional_embedder(embedded_seq)</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1"></a>positional_embedder <span class="op">=</span> Transformers.<span class="fu">PositionEmbedding</span>(<span class="fl">512</span>)</span>
+<span id="cb2-2"><a href="#cb2-2"></a>em_postional_seq <span class="op">=</span> embedded_seq <span class="op">.+</span> <span class="fu">positional_embedder</span>(embedded_seq)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </div>
 </section>
+
+<section id="section-3" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/embedding_position.png" class="r-stretch"></section>
 
 <section id="transfomer-attention-head" class="title-slide slide level1 center">
 <h1>Transfomer Attention Head</h1>
 <ul>
 <li class="fragment"><p>A sequence of length <span class="math inline">\(L\)</span> can be encoded by matrix <span class="math inline">\(X\)</span> with dimension <span class="math inline">\(v \times L\)</span>.</p></li>
-<li class="fragment"><p>The transformer attention mechanism is simply a generalisation of this attention mechanism: <span class="math display">\[ A(K,Q,V) = \text{softmax}(\frac{K^TQ}{\sqrt{d_k}) \odot V \]</span> <span class="math display">\[K = W^KX, Q = W^QX, V = W^VX\]</span></p></li>
+<li class="fragment"><p>The Transformer attention mechanism is given by: <span class="math display">\[A(K,Q,V) = \text{softmax}\left(\frac{K^TQ}{\sqrt{d_k}}\right) \odot V\]</span> <span class="math display">\[K = W^KX, Q = W^QX, V = W^VX\]</span></p></li>
+</ul>
+</section>
+
+<section id="section-4" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/keys_queries.png" class="r-stretch"></section>
+
+<section id="attention-matrices" class="title-slide slide level1 center">
+<h1>Attention Matrices</h1>
+<ul>
+<li class="fragment"><p>Each input vector forms a row and these can be concatenated for efficiency into a matrix.</p></li>
 <li class="fragment"><p>K represents the keys, Q the querys, V the values. Softmax is calculated row by row. <span class="math inline">\(\odot\)</span> is element-wise product.</p></li>
 <li class="fragment"><p>We scale by the number of dimensions for gradient stability in training.</p></li>
 </ul>
 </section>
 
+<section id="section-5" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/KQV.png" class="r-stretch"></section>
+
+<section id="section-6" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/attention_head.png" class="r-stretch"></section>
+
 <section id="multi-head-attention" class="title-slide slide level1 center">
 <h1>Multi-head attention</h1>
 <ul>
-<li class="fragment"><p>An attention head can be thought of like a convolutional filter.</p></li>
-<li class="fragment"><p>A transformer layer can have multiple heads.</p></li>
+<li class="fragment"><p>A transformer layer can have multiple heads analag. convolutional filter.</p></li>
 <li class="fragment"><p>Each of these heads will learn to focus on different semantic relationships.</p></li>
 <li class="fragment"><p>This can be efficiently encoded by simply concatenating each individual head. Usually, <span class="math inline">\(n * h_d = d\)</span>.</p></li>
+<li class="fragment"><p>Head dimension is <em>not</em> a hyper-parameter.</p></li>
 </ul>
 </section>
+
+<section id="section-7" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/multihead.png" class="r-stretch"></section>
 
 <section id="residual-and-normalisation" class="title-slide slide level1 center">
 <h1>Residual and Normalisation</h1>
@@ -551,25 +610,33 @@ Nicholas Gale and Stephen Eglen
 <li class="fragment"><p>The outputs of the attention mechanism are mutliplied by matrix <span class="math inline">\(W^O\)</span> of dimension <span class="math inline">\(d \times v\)</span>.</p></li>
 <li class="fragment"><p>The pre-attention inputs (residuals) are added to the re-embedded attention transformed inputs.</p></li>
 <li class="fragment"><p>This combined vector is then layer-normalised.</p></li>
-<li class="fragment"><p>These residuals allow positional embeddings to be preserved.</p></li>
 </ul>
 </section>
+
+<section id="section-8" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/residuals.png" class="r-stretch"></section>
 
 <section id="feed-forward-network" class="title-slide slide level1 center">
 <h1>Feed Forward Network</h1>
 <ul>
-<li class="fragment"><p>The normalised self-attention and residuals are passed through a feed-foward network: <span class="math display">\[\text{F(x) = \text{ReLu}(W_1x + b_1)W_2 + b_2\]</span></p></li>
+<li class="fragment">The normalised self-attention and residuals are passed through a feed-foward network: <span class="math display">\[F(x) = \text{ReLu}(W_1x + b_1)W_2 + b_2\]</span></li>
+</ul>
+</section>
+
+<section id="inner-dimensions" class="title-slide slide level1 center">
+<h1>Inner Dimensions</h1>
+<ul>
 <li class="fragment"><p>The inner-dimension is independent of the embedding dimension e.g.&nbsp;2048.</p></li>
 <li class="fragment"><p>The feed forward network is shared between all tokens.</p></li>
 <li class="fragment"><p>The residuals are added to the ouput of the FFN and layer-normalised.</p></li>
 </ul>
 </section>
 
-<section id="section-1" class="title-slide slide level1 center">
+<section id="section-9" class="title-slide slide level1 center">
 <h1></h1>
-<ul>
-<li class="fragment">Image of Encoder Block*</li>
-</ul>
+
 </section>
 
 <section id="encoder-blocklayer" class="title-slide slide level1 center">
@@ -580,33 +647,37 @@ Nicholas Gale and Stephen Eglen
 <li class="fragment"><p>The Encoder is formed of several encoder blocks e.g.&nbsp;6</p></li>
 </ul>
 <div class="fragment">
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1"></a>encoder_block <span class="op">=</span> Transformers.<span class="fu">Transformer</span>(model_d, n_heads, head_d, inner_d)</span>
-<span id="cb2-2"><a href="#cb2-2"></a>encoder_block_output <span class="op">=</span> <span class="fu">encoder_block</span>(block_input)</span>
-<span id="cb2-3"><a href="#cb2-3"></a>encoder <span class="op">=</span> <span class="fu">Chain</span>(block1, <span class="op">...</span>, blockn)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1"></a>encoder_block <span class="op">=</span> Transformers.<span class="fu">Transformer</span>(model_d, n_heads, head_d, inner_d)</span>
+<span id="cb3-2"><a href="#cb3-2"></a>encoder_block_output <span class="op">=</span> <span class="fu">encoder_block</span>(block_input)</span>
+<span id="cb3-3"><a href="#cb3-3"></a>encoder <span class="op">=</span> <span class="fu">Chain</span>(block1, <span class="op">...</span>, blockn)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </section>
+
+<section id="section-10" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/encoder_block.png" class="r-stretch"></section>
 
 <section id="decoder-block" class="title-slide slide level1 center">
 <h1>Decoder Block</h1>
 <ul>
 <li class="fragment"><p>A decoder block has a self-attention, an encoder-attention, and a feed-forward network.</p></li>
-<li class="fragment"><p>These are layer-normalised and apart from the encoder-attention behave as before.</p></li>
-<li class="fragment"><p>The encoder-attention takes its queries from the decoder input.</p></li>
-<li class="fragment"><p>The keys and values are constructed using the output from the top encoder layer.</p></li>
+<li class="fragment"><p>The encoder-decoder-attention keys and values are constructed using output from encoder (and learnable matrices).</p></li>
 <li class="fragment"><p>These keys and values are shared across all decoder blocks.</p></li>
 </ul>
-</section>
-
-<section id="section-2" class="title-slide slide level1 center">
-<h1></h1>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1"></a>decoder_block <span class="op">=</span> Transformers.<span class="fu">TransformerDecoder</span>(model_d, n_heads, head_d, inner_d)</span>
-<span id="cb3-2"><a href="#cb3-2"></a>decoder_block_output <span class="op">=</span> <span class="fu">decoder_block</span>(block_input, encoder_output)</span>
-<span id="cb3-3"><a href="#cb3-3"></a>decoder <span class="op">=</span> <span class="fu">Chain</span>(block1, <span class="op">...</span>, blockn)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1"></a>decoder_block <span class="op">=</span> Transformers.<span class="fu">TransformerDecoder</span>(model_d, n_heads, head_d, inner_d)</span>
+<span id="cb4-2"><a href="#cb4-2"></a>decoder_block_output <span class="op">=</span> <span class="fu">decoder_block</span>(block_input, encoder_output)</span>
+<span id="cb4-3"><a href="#cb4-3"></a>decoder <span class="op">=</span> <span class="fu">Chain</span>(block1, <span class="op">...</span>, blockn)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
+
+<section id="section-11" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/decoder_block.png" class="r-stretch"></section>
 
 <section id="sequence-generation" class="title-slide slide level1 center">
 <h1>Sequence Generation</h1>
@@ -646,6 +717,11 @@ Nicholas Gale and Stephen Eglen
 </ul>
 </section>
 
+<section id="section-12" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/transformer_model.png" class="r-stretch"></section>
+
 <section id="transformers-in-biology" class="title-slide slide level1 center">
 <h1>Transformers in Biology</h1>
 <ul>
@@ -669,7 +745,7 @@ Nicholas Gale and Stephen Eglen
 <section id="problems" class="title-slide slide level1 center">
 <h1>Problems</h1>
 <ul>
-<li class="fragment"><p>Authors managed to achieve state of the art performance on tasks (tasks not too important)</p></li>
+<li class="fragment"><p>Authors managed to achieve state of the art performance on target tasks (tasks not too important)</p></li>
 <li class="fragment"><p>The resulting model is vastly more computationally efficient: 128 GPUs for 4 days =&gt; 4 GPUs for 18 hours.</p></li>
 <li class="fragment"><p>Still difficult to reproduce. GPUs are top of the line and few people have access to this many.</p></li>
 <li class="fragment"><p>Transformers in general are large models and pose a reproducibility problem.</p></li>
@@ -679,8 +755,18 @@ Nicholas Gale and Stephen Eglen
 <section id="summary" class="title-slide slide level1 center">
 <h1>Summary</h1>
 <ul>
-<li class="fragment">Transformers are</li>
+<li class="fragment"><p>Transformers are a complex but powerful sequence analysis architecture.</p></li>
+<li class="fragment"><p>Julia offers support through <code>Transformers.jl</code>.</p></li>
+<li class="fragment"><p>Very successful, but computationally demanding and not easily reproducible.</p></li>
+<li class="fragment"><p>Relatively unplumbed in Biology.</p></li>
 </ul>
+</section>
+
+<section id="references" class="title-slide slide level1 center">
+<h1>References</h1>
+<p><a href="https://arxiv.org/abs/1706.03762">Attention is all you need; Vaswani et. al.&nbsp;(2017)</a></p>
+<p><a href="https://www.nature.com/articles/s41592-021-01252-x">Effective gene expression prediction from sequence by integrating long-range interactions; Avsec et. al.&nbsp;(2021)</a></p>
+<p><a href="https://www.biorxiv.org/content/10.1101/2020.06.15.153643v1.full">Transforming the Language of Life: Transformer Neural Networks for Protein Prediction Tasks; Nambiar et. al.&nbsp;(2020)</a></p>
 <div class="footer footer-default">
 
 </div>

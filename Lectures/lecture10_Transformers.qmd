@@ -47,17 +47,25 @@ format:
 
 * Transformers leverage the idea of attention: not new.
 
-* Attention is computed between all elements in a sequence: a weighted relationship between elements.
+* Attention is computed between all elements in a sequence: a weighted relationship between locations.
 
 * All units are considered independently: massive parallelisation.
 
-# Attention: bare bones
+# Attention
 
-* Simple attention is similar to constructing the Hopfield network weights.
+* Simple attention relies on nothing more than a Euclidean projection: dot product.
 
-* For each vector pair compute the dot product between them.
+* ![](./images/dot_product.png)
 
-* For each vector $x_i$ find relations with all other vectors $x_j$ using Hebb rule and normalise with `softmax`. $$ a_{ij} = x_i^T x_j $$ $$ A_{ij} = \frac{\exp(a_{ij})}{\sum_j \exp(a)_{ij}} $$
+# Simple attention: computation
+
+* For each vector pair compute the dot product between them  and normalise over all pairs with `softmax`. $$ a_{ij} = x_i^T x_j $$ $$ A_{ij} = \frac{\exp(a_{ij})}{\sum_j \exp(a)_{ij}} $$
+
+# Attention Retrevial
+
+* An input is weighted by the row of the attention matrix corresponding to its index.
+
+* The ouput is the weighted sum of all vectors by this attention row: $$ y_i = \sum_j A_{ij} x_j $$
 
 # Querys and Keys
 
@@ -69,23 +77,19 @@ format:
 
 * Transformers inherit the language and call these *keys* and *queries*.
 
-# Attention Retrevial
-
-* An input is weighted by the row of the attention matrix corresponding to its index.
-
-* The ouput is the weighted sum of all vectors by this attention row: $$ y_i = \sum_j A_{ij} x_j $$
-
 # Attention Generalised
 
-* We would like to let the keys, queries, and values not be fully determined by a lookup value.
+* We would like to let the keys, queries, and values not be fully determined by Euclidean representation. 
 
 * We imagine them as linear transforms of the total dictionary embedding values into a new space.
 
-* Therefore, they are matrices $(W^K, W^Q, W^V)$ with a size $v \times d$.
-
 * This allows us to compress our key/query/value representation to a lower dimensionality.
 
-# Transformers
+# 
+
+![](./images/embedding_dimension.png)
+
+# Transformers Bare Bones
    
 * The transformer model is composed of two attentional models: an encoder and decoder.
 
@@ -97,6 +101,18 @@ format:
 
 * The output sequence is decoded with a decoder dictionary e.g. amino acids.
 
+
+# Transfomers.jl
+
+* `Transformers.jl` is built on top of Flux.
+
+* It has similar GPU support (and similiar drawbacks).
+
+* Similar grammar but there are subtleties - documentation is helpful! 
+
+* Open source contribution - documentation could be added to! Anyone can do this.
+
+
 # Transformer Pre-Processing
 
 * Token labels are encoded into a lookup table (Vocabulary).
@@ -104,6 +120,8 @@ format:
 * The input sequence tokens are first wrapped by "Start" and "End" tokens and encoded by the Vocabulary. 
 
 * This encoded representation is embedded into vectors of length $v$.
+
+#
 
 ```{julia}
 #| echo: false
@@ -115,8 +133,8 @@ using Transformers;
 ```{julia}
 #| incremental: true
 #| eval: false
-tokenizer = Vocabulary(labels, unknown_symbol)
-sequence = [start, sample_sequence_tokens..., end]
+tokenizer = Transformers.Vocabulary(labels, unknown_symbol)
+sequence = [start_token, sample_sequence_tokens..., end_token]
 encoded_sequence = tokenizer(sequence)
 embedder = Transformers.Embed(512, length(tokenizer)
 embedded_seq = embedder(encoded_sequence)
@@ -136,29 +154,56 @@ embedded_seq = embedder(encoded_sequence)
 * Positional encodings can be learnt but typically use a fucntion: $$ p_{2k}(i) = cos(i/10000^k) $$ $$ p_{2k+1}(i) = sin(i/10000^k) $$
 
 ::: {.fragment}
-positional_embedder = Position(512)
-em_postional_seq = embedded_seq .+ postitional_embedder(embedded_seq)
+```{julia}
+#| eval: false
+positional_embedder = Transformers.PositionEmbedding(512)
+em_postional_seq = embedded_seq .+ positional_embedder(embedded_seq)
+```
 :::
+
+# 
+
+![](./images/embedding_position.png)
 
 # Transfomer Attention Head
 
 * A sequence of length $L$ can be encoded by matrix $X$ with dimension $v \times L$.
 
-* The transformer attention mechanism is simply a generalisation of this attention mechanism: $$ A(K,Q,V) = \text{softmax}(\frac{K^TQ}{\sqrt{d_k}) \odot V $$ $$K = W^KX, Q = W^QX, V = W^VX$$
+* The Transformer attention mechanism is given by: $$A(K,Q,V) = \text{softmax}\left(\frac{K^TQ}{\sqrt{d_k}}\right) \odot V$$ $$K = W^KX, Q = W^QX, V = W^VX$$
+
+#
+
+![](./images/keys_queries.png)
+
+# Attention Matrices
+
+* Each input vector forms a row and these can be concatenated for efficiency into a matrix. 
 
 * K represents the keys, Q the querys, V the values. Softmax is calculated row by row. $\odot$ is element-wise product.
 
 * We scale by the number of dimensions for gradient stability in training.
 
+#
+
+![](./images/KQV.png)
+
+#
+
+![](./images/attention_head.png)
+
 # Multi-head attention
 
-* An attention head can be thought of like a convolutional filter.
-
-* A transformer layer can have multiple heads.
+* A transformer layer can have multiple heads analag. convolutional filter.
 
 * Each of these heads will learn to focus on different semantic relationships.
 
 * This can be efficiently encoded by simply concatenating each individual head. Usually, $n * h_d = d$.
+
+* Head dimension is *not* a hyper-parameter.
+
+# 
+
+![](./images/multihead.png)
 
 # Residual and Normalisation
 
@@ -168,11 +213,16 @@ em_postional_seq = embedded_seq .+ postitional_embedder(embedded_seq)
 
 * This combined vector is then layer-normalised.
 
-* These residuals allow positional embeddings to be preserved.
+#
+
+![](./images/residuals.png)
 
 # Feed Forward Network
 
-* The normalised self-attention and residuals are passed through a feed-foward network: $$\text{F(x) = \text{ReLu}(W_1x + b_1)W_2 + b_2$$
+* The normalised self-attention and residuals are passed through a feed-foward network: $$F(x) = \text{ReLu}(W_1x + b_1)W_2 + b_2$$
+
+
+# Inner Dimensions
 
 * The inner-dimension is independent of the embedding dimension e.g. 2048.
 
@@ -181,8 +231,6 @@ em_postional_seq = embedded_seq .+ postitional_embedder(embedded_seq)
 * The residuals are added to the ouput of the FFN and layer-normalised.
 
 #
-
-* Image of Encoder Block*
 
 # Encoder Block/Layer
 
@@ -201,19 +249,17 @@ encoder = Chain(block1, ..., blockn)
 ```
 :::
 
+# 
+
+![](./images/encoder_block.png)
+
 # Decoder Block
 
 * A decoder block has a self-attention, an encoder-attention, and a feed-forward network.
 
-* These are layer-normalised and apart from the encoder-attention behave as before.
-
-* The encoder-attention takes its queries from the decoder input.
-
-* The keys and values are constructed using the output from the top encoder layer.
+* The encoder-decoder-attention keys and values are constructed using output from encoder (and learnable matrices).
 
 * These keys and values are shared across all decoder blocks.
-
-# 
 
 ```{julia}
 #| eval: false
@@ -221,6 +267,10 @@ decoder_block = Transformers.TransformerDecoder(model_d, n_heads, head_d, inner_
 decoder_block_output = decoder_block(block_input, encoder_output)
 decoder = Chain(block1, ..., blockn)
 ```
+#
+
+![](./images/decoder_block.png)
+
 
 # Sequence Generation
 
@@ -258,6 +308,10 @@ decoder = Chain(block1, ..., blockn)
 
 * Keys, Queries, Values are learned and represent optimal information relationships in the problem context.
 
+#
+
+![](./images/transformer_model.png)
+
 # Transformers in Biology
 
 * Transformers are in relative infancy - lots of work to be done.
@@ -280,7 +334,7 @@ decoder = Chain(block1, ..., blockn)
 
 # Problems
 
-* Authors managed to achieve state of the art performance on tasks (tasks not too important)
+* Authors managed to achieve state of the art performance on target tasks (tasks not too important)
 
 * The resulting model is vastly more computationally efficient: 128 GPUs for 4 days => 4 GPUs for 18 hours.
 
@@ -290,4 +344,18 @@ decoder = Chain(block1, ..., blockn)
 
 # Summary
 
-* Transformers are 
+* Transformers are a complex but powerful sequence analysis architecture.
+
+* Julia offers support through `Transformers.jl`.
+
+* Very successful, but computationally demanding and not easily reproducible.
+
+* Relatively unplumbed in Biology.
+
+# References
+
+[Attention is all you need; Vaswani et. al. (2017)](https://arxiv.org/abs/1706.03762)
+
+[Effective gene expression prediction from sequence by integrating long-range interactions; Avsec et. al. (2021)](https://www.nature.com/articles/s41592-021-01252-x)
+
+[Transforming the Language of Life: Transformer Neural Networks for Protein Prediction Tasks; Nambiar et. al. (2020)](https://www.biorxiv.org/content/10.1101/2020.06.15.153643v1.full)
