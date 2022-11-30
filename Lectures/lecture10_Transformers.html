@@ -10,7 +10,7 @@
   <meta name="generator" content="quarto-1.2.242">
 
   <meta name="author" content="Nicholas Gale and Stephen Eglen">
-  <title>Generative Adverserial Networks</title>
+  <title>Transformers</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -390,8 +390,8 @@
     <div class="slides">
 
 <section id="title-slide" class="quarto-title-block center">
-  <h1 class="title">Generative Adverserial Networks</h1>
-  <p class="subtitle">Generative Modelling with Neural Networks</p>
+  <h1 class="title">Transformers</h1>
+  <p class="subtitle">Modern Sequence Analysis</p>
 
 <div class="quarto-title-authors">
 <div class="quarto-title-author">
@@ -463,13 +463,13 @@ Nicholas Gale and Stephen Eglen
 </ul>
 </section>
 
-<section id="querys-and-keys" class="title-slide slide level1 center">
-<h1>Querys and Keys</h1>
+<section id="querys-keys-and-values" class="title-slide slide level1 center">
+<h1>Querys, Keys, and Values</h1>
 <ul>
-<li class="fragment"><p>Imagine the vectors are one-hot batched: (0,0,1, , 0,0)</p></li>
-<li class="fragment"><p>The product <span class="math inline">\(x_i^Tx_j\)</span> will be one only in the indexes <span class="math inline">\(i=j\)</span>.</p></li>
+<li class="fragment"><p>Imagine the vectors are one-hot batched: <span class="math display">\[(0,0,1, \ldots, 0,0)\]</span></p></li>
+<li class="fragment"><p>The product <span class="math inline">\(x_i^Tx_j\)</span> will be one only in the indexes <span class="math inline">\(i=j\)</span>. Multiplying by the potential valus gives <span class="math inline">\(x_i\)</span>.</p></li>
 <li class="fragment"><p>This operation is acting like a look-up table.</p></li>
-<li class="fragment"><p>Transformers inherit the language and call these <em>keys</em> and <em>queries</em>.</p></li>
+<li class="fragment"><p>Transformers inherit the language and call these <em>keys</em>, <em>queries</em>, and <em>values</em>.</p></li>
 </ul>
 </section>
 
@@ -477,7 +477,7 @@ Nicholas Gale and Stephen Eglen
 <h1>Attention Generalised</h1>
 <ul>
 <li class="fragment"><p>We would like to let the keys, queries, and values not be fully determined by Euclidean representation.</p></li>
-<li class="fragment"><p>We imagine them as linear transforms of the total dictionary embedding values into a new space.</p></li>
+<li class="fragment"><p>We imagine them as linear transforms of the total dictionary embedding values into a new space: <span class="math display">\[k_i = W^Kx_i, q_i = W^Qx_i, v_i = W^Vx_i\]</span></p></li>
 <li class="fragment"><p>This allows us to compress our key/query/value representation to a lower dimensionality.</p></li>
 </ul>
 </section>
@@ -498,8 +498,8 @@ Nicholas Gale and Stephen Eglen
 </ul>
 </section>
 
-<section id="transfomers.jl" class="title-slide slide level1 center">
-<h1>Transfomers.jl</h1>
+<section id="transformers.jl" class="title-slide slide level1 center">
+<h1>Transformers.jl</h1>
 <ul>
 <li class="fragment"><p><code>Transformers.jl</code> is built on top of Flux.</p></li>
 <li class="fragment"><p>It has similar GPU support (and similiar drawbacks).</p></li>
@@ -508,20 +508,16 @@ Nicholas Gale and Stephen Eglen
 </ul>
 </section>
 
-<section id="transformer-pre-processing" class="title-slide slide level1 center">
-<h1>Transformer Pre-Processing</h1>
+<section id="pre-processing" class="title-slide slide level1 center">
+<h1>Pre-Processing</h1>
 <ul>
-<li class="fragment"><p>Token labels are encoded into a lookup table (Vocabulary).</p></li>
+<li class="fragment"><p>Token labels, a start/end symbol, and an unknown symbol are encoded into a lookup table (Vocabulary).</p></li>
 <li class="fragment"><p>The input sequence tokens are first wrapped by “Start” and “End” tokens and encoded by the Vocabulary.</p></li>
-<li class="fragment"><p>This encoded representation is embedded into vectors of length <span class="math inline">\(v\)</span>.</p></li>
+<li class="fragment"><p>This encoded representation is semantically embedded into vectors of length <span class="math inline">\(D\)</span>.</p></li>
 </ul>
-</section>
-
-<section id="section-1" class="title-slide slide level1 center">
-<h1></h1>
 <div class="fragment">
 <div class="cell" data-incremental="true" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1"></a>tokenizer <span class="op">=</span> Transformers.<span class="fu">Vocabulary</span>(labels, unknown_symbol)</span>
+<div class="sourceCode cell-code" id="cb1" data-code-line-numbers="1|2|3|4|"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1"></a>tokenizer <span class="op">=</span> Transformers.<span class="fu">Vocabulary</span>(labels, unknown_symbol)</span>
 <span id="cb1-2"><a href="#cb1-2"></a>sequence <span class="op">=</span> [start_token, sample_sequence_tokens<span class="op">...</span>, end_token]</span>
 <span id="cb1-3"><a href="#cb1-3"></a>encoded_sequence <span class="op">=</span> <span class="fu">tokenizer</span>(sequence)</span>
 <span id="cb1-4"><a href="#cb1-4"></a>embedder <span class="op">=</span> Transformers.<span class="fu">Embed</span>(<span class="fl">512</span>, <span class="fu">length</span>(tokenizer)</span>
@@ -539,10 +535,10 @@ Nicholas Gale and Stephen Eglen
 </ul>
 </section>
 
-<section id="section-2" class="title-slide slide level1 center">
+<section id="section-1" class="title-slide slide level1 center">
 <h1></h1>
 <ul>
-<li class="fragment">Positional encodings can be learnt but typically use a fucntion: <span class="math display">\[ p_{2k}(i) = cos(i/10000^k) \]</span> <span class="math display">\[ p_{2k+1}(i) = sin(i/10000^k) \]</span></li>
+<li class="fragment">Positional encodings can be learnt but typically use a function: <span class="math display">\[ p_{2k}(i) = cos(i/10000^k) \]</span> <span class="math display">\[ p_{2k+1}(i) = sin(i/10000^k) \]</span></li>
 </ul>
 <div class="fragment">
 <div class="cell" data-execution_count="3">
@@ -552,39 +548,44 @@ Nicholas Gale and Stephen Eglen
 </div>
 </section>
 
-<section id="section-3" class="title-slide slide level1 center">
+<section id="section-2" class="title-slide slide level1 center">
 <h1></h1>
 
 <img data-src="./images/embedding_position.png" class="r-stretch"></section>
 
-<section id="transfomer-attention-head" class="title-slide slide level1 center">
-<h1>Transfomer Attention Head</h1>
+<section id="keys-queries-and-values" class="title-slide slide level1 center">
+<h1>Keys, Queries, and Values</h1>
 <ul>
-<li class="fragment"><p>A sequence of length <span class="math inline">\(L\)</span> can be encoded by matrix <span class="math inline">\(X\)</span> with dimension <span class="math inline">\(v \times L\)</span>.</p></li>
-<li class="fragment"><p>The Transformer attention mechanism is given by: <span class="math display">\[A(K,Q,V) = \text{softmax}\left(\frac{K^TQ}{\sqrt{d_k}}\right) \odot V\]</span> <span class="math display">\[K = W^KX, Q = W^QX, V = W^VX\]</span></p></li>
+<li class="fragment"><p>The keys, queries and values are remembeddings of the information into a different representational subspace.</p></li>
+<li class="fragment"><p>These are the key learnable parameters in the model.</p></li>
+<li class="fragment"><p>An efficient subspace representation of information allows for impressive generalisability.</p></li>
 </ul>
-</section>
-
-<section id="section-4" class="title-slide slide level1 center">
-<h1></h1>
 
 <img data-src="./images/keys_queries.png" class="r-stretch"></section>
 
 <section id="attention-matrices" class="title-slide slide level1 center">
 <h1>Attention Matrices</h1>
 <ul>
-<li class="fragment"><p>Each input vector forms a row and these can be concatenated for efficiency into a matrix.</p></li>
-<li class="fragment"><p>K represents the keys, Q the querys, V the values. Softmax is calculated row by row. <span class="math inline">\(\odot\)</span> is element-wise product.</p></li>
-<li class="fragment"><p>We scale by the number of dimensions for gradient stability in training.</p></li>
+<li class="fragment"><p>Each input vector forms a row and these can be concatenated for efficiency into a matrix: <span class="math inline">\(X\)</span> (L x D)</p></li>
+<li class="fragment"><p>K represents the keys, Q the querys, V the values.</p></li>
 </ul>
 </section>
 
-<section id="section-5" class="title-slide slide level1 center">
+<section id="section-3" class="title-slide slide level1 center">
 <h1></h1>
 
 <img data-src="./images/KQV.png" class="r-stretch"></section>
 
-<section id="section-6" class="title-slide slide level1 center">
+<section id="transformer-attention-head" class="title-slide slide level1 center">
+<h1>Transformer Attention Head</h1>
+<ul>
+<li class="fragment"><p>The Transformer attention mechanism is given by: <span class="math display">\[A(K,Q,V) = \text{softmax}\left(\frac{K^TQ}{\sqrt{D}}\right) \odot V\]</span> <span class="math display">\[K = W^KX, Q = W^QX, V = W^VX\]</span></p></li>
+<li class="fragment"><p>Softmax is calculated row by row. <span class="math inline">\(\odot\)</span> is element-wise product.</p></li>
+<li class="fragment"><p>We scale by the number of dimensions for gradient stability in training.</p></li>
+</ul>
+</section>
+
+<section id="section-4" class="title-slide slide level1 center">
 <h1></h1>
 
 <img data-src="./images/attention_head.png" class="r-stretch"></section>
@@ -594,12 +595,12 @@ Nicholas Gale and Stephen Eglen
 <ul>
 <li class="fragment"><p>A transformer layer can have multiple heads analag. convolutional filter.</p></li>
 <li class="fragment"><p>Each of these heads will learn to focus on different semantic relationships.</p></li>
-<li class="fragment"><p>This can be efficiently encoded by simply concatenating each individual head. Usually, <span class="math inline">\(n * h_d = d\)</span>.</p></li>
+<li class="fragment"><p>This can be efficiently encoded by simply concatenating each individual head. Usually, <span class="math inline">\(n \times h_d = D\)</span>.</p></li>
 <li class="fragment"><p>Head dimension is <em>not</em> a hyper-parameter.</p></li>
 </ul>
 </section>
 
-<section id="section-7" class="title-slide slide level1 center">
+<section id="section-5" class="title-slide slide level1 center">
 <h1></h1>
 
 <img data-src="./images/multihead.png" class="r-stretch"></section>
@@ -607,13 +608,14 @@ Nicholas Gale and Stephen Eglen
 <section id="residual-and-normalisation" class="title-slide slide level1 center">
 <h1>Residual and Normalisation</h1>
 <ul>
-<li class="fragment"><p>The outputs of the attention mechanism are mutliplied by matrix <span class="math inline">\(W^O\)</span> of dimension <span class="math inline">\(d \times v\)</span>.</p></li>
+<li class="fragment"><p>The outputs of the attention mechanism are mutliplied by matrix <span class="math inline">\(W^O\)</span> to remebbed vectors into length D.</p></li>
+<li class="fragment"><p><span class="math inline">\(W^O\)</span> is another learnable matrix.</p></li>
 <li class="fragment"><p>The pre-attention inputs (residuals) are added to the re-embedded attention transformed inputs.</p></li>
 <li class="fragment"><p>This combined vector is then layer-normalised.</p></li>
 </ul>
 </section>
 
-<section id="section-8" class="title-slide slide level1 center">
+<section id="section-6" class="title-slide slide level1 center">
 <h1></h1>
 
 <img data-src="./images/residuals.png" class="r-stretch"></section>
@@ -634,7 +636,7 @@ Nicholas Gale and Stephen Eglen
 </ul>
 </section>
 
-<section id="section-9" class="title-slide slide level1 center">
+<section id="section-7" class="title-slide slide level1 center">
 <h1></h1>
 
 </section>
@@ -642,7 +644,7 @@ Nicholas Gale and Stephen Eglen
 <section id="encoder-blocklayer" class="title-slide slide level1 center">
 <h1>Encoder Block/Layer</h1>
 <ul>
-<li class="fragment"><p>The operations of self-attention, feed forward networks, and feed-forward make an encoder block.</p></li>
+<li class="fragment"><p>The operations of self-attention, feed forward networks, and layer-normalisation make an encoder block.</p></li>
 <li class="fragment"><p>This can be thought of as a layer in a regular NN.</p></li>
 <li class="fragment"><p>The Encoder is formed of several encoder blocks e.g.&nbsp;6</p></li>
 </ul>
@@ -655,7 +657,7 @@ Nicholas Gale and Stephen Eglen
 </div>
 </section>
 
-<section id="section-10" class="title-slide slide level1 center">
+<section id="section-8" class="title-slide slide level1 center">
 <h1></h1>
 
 <img data-src="./images/encoder_block.png" class="r-stretch"></section>
@@ -663,18 +665,20 @@ Nicholas Gale and Stephen Eglen
 <section id="decoder-block" class="title-slide slide level1 center">
 <h1>Decoder Block</h1>
 <ul>
-<li class="fragment"><p>A decoder block has a self-attention, an encoder-attention, and a feed-forward network.</p></li>
+<li class="fragment"><p>A decoder block has a self-attention, an encoder-decoder-attention, and a feed-forward network.</p></li>
 <li class="fragment"><p>The encoder-decoder-attention keys and values are constructed using output from encoder (and learnable matrices).</p></li>
 <li class="fragment"><p>These keys and values are shared across all decoder blocks.</p></li>
 </ul>
+<div class="fragment">
 <div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1"></a>decoder_block <span class="op">=</span> Transformers.<span class="fu">TransformerDecoder</span>(model_d, n_heads, head_d, inner_d)</span>
 <span id="cb4-2"><a href="#cb4-2"></a>decoder_block_output <span class="op">=</span> <span class="fu">decoder_block</span>(block_input, encoder_output)</span>
 <span id="cb4-3"><a href="#cb4-3"></a>decoder <span class="op">=</span> <span class="fu">Chain</span>(block1, <span class="op">...</span>, blockn)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</div>
 </section>
 
-<section id="section-11" class="title-slide slide level1 center">
+<section id="section-9" class="title-slide slide level1 center">
 <h1></h1>
 
 <img data-src="./images/decoder_block.png" class="r-stretch"></section>
@@ -684,7 +688,7 @@ Nicholas Gale and Stephen Eglen
 <ul>
 <li class="fragment"><p>Sequences are generated with a start symbol and terminated with a stop symbol.</p></li>
 <li class="fragment"><p>The outputs are fed through the network as inputs until stopping.</p></li>
-<li class="fragment"><p>The output vector is fixed at an arbitrary length i.e.&nbsp;512</p></li>
+<li class="fragment"><p>The output vector is fixed at an arbitrary length i.e.&nbsp;1024</p></li>
 <li class="fragment"><p>Future outputs are masked with <code>-Inf</code> to prevent left flowing information: autoregressive.</p></li>
 </ul>
 </section>
@@ -694,7 +698,7 @@ Nicholas Gale and Stephen Eglen
 <ul>
 <li class="fragment"><p>The final step is to <code>softmax</code> outputs to generate a probability distribution against a dictionary/vocabulary.</p></li>
 <li class="fragment"><p>The natural loss function is <code>crossentropy</code>.</p></li>
-<li class="fragment"><p>Loss functions may be abritrary.</p></li>
+<li class="fragment"><p>Loss functions may be arbitrary.</p></li>
 </ul>
 </section>
 
@@ -717,10 +721,19 @@ Nicholas Gale and Stephen Eglen
 </ul>
 </section>
 
-<section id="section-12" class="title-slide slide level1 center">
+<section id="section-10" class="title-slide slide level1 center">
 <h1></h1>
 
 <img data-src="./images/transformer_model.png" class="r-stretch"></section>
+
+<section id="transfer-learning" class="title-slide slide level1 center">
+<h1>Transfer Learning</h1>
+<ul>
+<li class="fragment"><p>Transformer models are large - amongst the largest neural networks.</p></li>
+<li class="fragment"><p>Difficult to train without industrial resources.</p></li>
+<li class="fragment"><p>Employ transfer learning: import pre-trained weights on a similar task and fine-tune to current task.</p></li>
+</ul>
+</section>
 
 <section id="transformers-in-biology" class="title-slide slide level1 center">
 <h1>Transformers in Biology</h1>
@@ -735,11 +748,24 @@ Nicholas Gale and Stephen Eglen
 <section id="transforming-the-language-of-life." class="title-slide slide level1 center">
 <h1>Transforming the Language Of Life.</h1>
 <ul>
-<li class="fragment"><p>Protein prediction can be done classicaly: HMMs and BLAST. Exponentially computationally expensive.</p></li>
+<li class="fragment"><p>Protein prediction can be done classically: HMMs and BLAST. Exponentially computationally expensive.</p></li>
 <li class="fragment"><p>CNNs and RNNs are computationally more efficient but task depedent and dont generalise.</p></li>
 <li class="fragment"><p>Authors propose Transformer model PRoBERTa: pre-trained agnostic amino acid sequence representation.</p></li>
 <li class="fragment"><p>Protein prediction tasks: binary PPI and protein family classification.</p></li>
 </ul>
+<aside class="notes">
+<p>PPI = prediction of protein interactions</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 
 <section id="problems" class="title-slide slide level1 center">

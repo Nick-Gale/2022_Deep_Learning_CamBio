@@ -405,15 +405,20 @@ Nicholas Gale and Stephen Eglen
 <section id="graphs" class="title-slide slide level1 center">
 <h1>Graphs</h1>
 
-</section>
+<img data-src="./images/graph_basic.png" class="r-stretch"></section>
 
 <section id="graphs-in-science" class="title-slide slide level1 center">
 <h1>Graphs in Science</h1>
 <ul>
-<li class="fragment"></li>
-<li class="fragment">Graphs are generalised non-linear data structures.</li>
+<li class="fragment"><p>Naturally intuitive way to represent objects e.g.&nbsp;molecules.</p></li>
+<li class="fragment"><p>Graphs are generalised non-linear data structures e.g.&nbsp;gene regulatory networks.</p></li>
 </ul>
 </section>
+
+<section id="section" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/caffeine.png" class="r-stretch"></section>
 
 <section id="formal-definitions" class="title-slide slide level1 center">
 <h1>Formal Definitions</h1>
@@ -424,27 +429,36 @@ Nicholas Gale and Stephen Eglen
 </ul>
 </section>
 
-<section id="adjancency-matrix" class="title-slide slide level1 center">
-<h1>Adjancency Matrix</h1>
+<section id="adjacency-matrix" class="title-slide slide level1 center">
+<h1>Adjacency Matrix</h1>
 <ul>
-<li class="fragment"><p>An adjancency matrix an object capturing node-edge relationships.</p></li>
+<li class="fragment"><p>An adjacency matrix an object capturing node-edge relationships.</p></li>
 <li class="fragment"><p>The rows/columns are the vertex index.</p></li>
 <li class="fragment"><p>The matrix value <span class="math inline">\(w_{ij}\)</span> is the edge weight between <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span>.</p></li>
 </ul>
+</section>
+
+<section id="section-1" class="title-slide slide level1 center">
+<h1></h1>
 <div class="columns">
 <div class="column" style="width:50%;">
 <div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">display</span>([<span class="fl">0</span> <span class="fl">1</span> <span class="fl">2</span> <span class="fl">0</span>; <span class="fl">1</span> <span class="fl">0</span> <span class="fl">1</span> <span class="fl">0</span>; <span class="fl">1</span> <span class="fl">1</span> <span class="fl">1</span> <span class="fl">1</span>; <span class="fl">0</span> <span class="fl">1</span> <span class="fl">2</span> <span class="fl">0</span>;])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<pre><code>4×4 Matrix{Int64}:
- 0  1  2  0
- 1  0  1  0
- 1  1  1  1
- 0  1  2  0</code></pre>
+<pre><code>10×10 Matrix{Int64}:
+ 0  1  0  0  0  0  0  0  0  0
+ 1  0  1  1  0  1  0  0  0  0
+ 0  1  0  0  0  0  0  0  0  0
+ 0  0  0  0  0  1  0  0  0  0
+ 0  0  0  0  0  0  1  0  0  0
+ 0  0  0  0  0  0  0  1  1  0
+ 0  0  0  0  1  0  0  0  0  0
+ 0  0  0  0  0  0  0  0  0  0
+ 0  0  0  0  0  0  1  0  0  1
+ 0  0  0  0  0  0  0  0  1  0</code></pre>
 </div>
 </div>
 </div><div class="column" style="width:50%;">
-<p>Insert graph here.</p>
+<p><img data-src="./images/graph_labels.png"></p>
 </div>
 </div>
 </section>
@@ -458,133 +472,296 @@ Nicholas Gale and Stephen Eglen
 </ul>
 </section>
 
+<section id="neighbourhood" class="title-slide slide level1 center">
+<h1>Neighbourhood</h1>
+<ul>
+<li class="fragment"><p>The neighbourhood of a node <span class="math inline">\(i\)</span> is denoted <span class="math inline">\(\mathcal{N}(i)\)</span>.</p></li>
+<li class="fragment"><p>The in neighbourhood is all the nodes with edges flowing into <span class="math inline">\(i\)</span>.</p></li>
+<li class="fragment"><p>The out neighbourhood is all the nodes with edges from <span class="math inline">\(i\)</span>. <span class="math display">\[\mathcal{N}(i) = \{ j : (ij) \in E \}\]</span></p></li>
+</ul>
+</section>
+
 <section id="permutation-invariance" class="title-slide slide level1 center">
 <h1>Permutation Invariance</h1>
 <ul>
 <li class="fragment"><p>A permutation is a relabelling of a graph nodes.</p></li>
 <li class="fragment"><p>A permutation matrix <span class="math inline">\(P\)</span> reshuffles an adjacency matrix: <span class="math inline">\(P^{-1} A P\)</span>.</p></li>
+<li class="fragment"><p>Reshuffle feature data by <span class="math inline">\(P^{-1} F_M\)</span>.</p></li>
 <li class="fragment"><p>Changing graph labels doesn’t change graphs.</p></li>
 <li class="fragment"><p>Analysis functions should <em>also</em> be permutation invariant e.g.&nbsp;<code>sum</code></p></li>
 </ul>
 </section>
 
-<section id="equivariance" class="title-slide slide level1 center">
-<h1>Equivariance</h1>
-
-</section>
-
 <section id="neural-networks" class="title-slide slide level1 center">
 <h1>Neural Networks</h1>
 <ul>
-<li class="fragment"><p>We now want to define a neural network on these graph.</p></li>
+<li class="fragment"><p>We now want to define a neural network on these graphs.</p></li>
 <li class="fragment"><p>Our input is the graph and the feature matrix of data.</p></li>
-<li class="fragment"><p>We transform inputs <span class="math inline">\(X_i\)</span> on the nodes to latents <span class="math inline">\(H_i\)</span> through a neighbourhood invariant function <span class="math inline">\(g\)</span></p></li>
-<li class="fragment"><p>This is the GNN layer. There are three types of <span class="math inline">\(g\)</span>.</p></li>
-<li class="fragment"><p>Convolutional, Attentional, and Message Passing.</p></li>
+<li class="fragment"><p>We transform inputs <span class="math inline">\(x_i\)</span> on the nodes to latents <span class="math inline">\(h_i\)</span> through a neighbourhood invariant function <span class="math inline">\(g\)</span></p></li>
+</ul>
+</section>
+
+<section id="julia-graph-neural-networks" class="title-slide slide level1 center">
+<h1>Julia Graph Neural Networks</h1>
+<ul>
+<li class="fragment"><p><code>GraphNeuralNetworks.jl</code> package is built on top of Flux.</p></li>
+<li class="fragment"><p>Excellent support for many layer types and documentation.</p></li>
+<li class="fragment"><p>Models are composed with <code>GraphNeuralNetworks.GNNChain</code>.</p></li>
+</ul>
+</section>
+
+<section id="specifiying-graphs" class="title-slide slide level1 center">
+<h1>Specifiying Graphs</h1>
+<ul>
+<li class="fragment"><p>Graphs are specified with <code>GNNGraph(obj)</code></p></li>
+<li class="fragment"><p>Objects can be adjacency matrices, adjanceny lists, and COO representation.</p></li>
+<li class="fragment"><p>Feature data (last dim = nodes) is passed with the <code>ndata</code> keyword which can be an optionally named tuple.</p></li>
+</ul>
+</section>
+
+<section id="section-2" class="title-slide slide level1 center">
+<h1></h1>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2" data-code-line-numbers="2-7|8|9|10|13,14|"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1"></a><span class="im">using</span> <span class="bu">GraphNeuralNetworks</span>, <span class="bu">Flux</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>amat <span class="op">=</span> [</span>
+<span id="cb2-3"><a href="#cb2-3"></a>    <span class="fl">0</span> <span class="fl">0</span> <span class="fl">1</span> <span class="fl">0</span>; </span>
+<span id="cb2-4"><a href="#cb2-4"></a>    <span class="fl">0</span> <span class="fl">0</span> <span class="fl">1</span> <span class="fl">1</span>; </span>
+<span id="cb2-5"><a href="#cb2-5"></a>    <span class="fl">1</span> <span class="fl">1</span> <span class="fl">0</span> <span class="fl">0</span>; </span>
+<span id="cb2-6"><a href="#cb2-6"></a>    <span class="fl">0</span> <span class="fl">1</span> <span class="fl">0</span> <span class="fl">0</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a>    ]</span>
+<span id="cb2-8"><a href="#cb2-8"></a>alist <span class="op">=</span> [[<span class="fl">3</span>], [<span class="fl">3</span>, <span class="fl">4</span>], [<span class="fl">1</span>, <span class="fl">2</span>], [<span class="fl">2</span>]];</span>
+<span id="cb2-9"><a href="#cb2-9"></a>coo_source, coo_target <span class="op">=</span> [[<span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">4</span>], [<span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">4</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span>]]</span>
+<span id="cb2-10"><a href="#cb2-10"></a>g1 <span class="op">=</span> <span class="fu">GNNGraph</span>(amat); g2 <span class="op">=</span> <span class="fu">GNNGraph</span>(alist); g3 <span class="op">=</span> <span class="fu">GNNGraph</span>(coo_source, coo_target);</span>
+<span id="cb2-11"><a href="#cb2-11"></a><span class="pp">@show</span> <span class="fu">adjacency_matrix</span>(g1) <span class="op">==</span> <span class="fu">adjacency_matrix</span>(g2) <span class="op">==</span> <span class="fu">adjacency_matrix</span>(g3)</span>
+<span id="cb2-12"><a href="#cb2-12"></a></span>
+<span id="cb2-13"><a href="#cb2-13"></a><span class="fu">GNNGraph</span>(amat, ndata <span class="op">=</span> <span class="fu">rand</span>(<span class="dt">Float32</span>, <span class="fl">10</span>,<span class="fl">4</span>))</span>
+<span id="cb2-14"><a href="#cb2-14"></a><span class="fu">GNNGraph</span>(amat, ndata <span class="op">=</span> (; x<span class="op">=</span><span class="fu">rand</span>(<span class="dt">Float32</span>, <span class="fl">10</span>, <span class="fl">4</span>), pr<span class="op">=</span><span class="fu">rand</span>(<span class="dt">Float32</span>, <span class="fl">2</span>, <span class="fl">4</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>adjacency_matrix(g1) == adjacency_matrix(g2) == adjacency_matrix(g3) = true</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>GNNGraph:
+    num_nodes = 4
+    num_edges = 6
+    ndata:
+        x =&gt; 10×4 Matrix{Float32}
+        pr =&gt; 2×4 Matrix{Float32}</code></pre>
+</div>
+</div>
+</section>
+
+<section id="pooling" class="title-slide slide level1 center">
+<h1>Pooling</h1>
+<ul>
+<li class="fragment"><p>Pooling is a graph reduction method.</p></li>
+<li class="fragment"><p>It is implemented as a layer in a graph neural network.</p></li>
+<li class="fragment"><p>Commonly, aggregrate features of subset of nodes to produce a new graph.</p></li>
+<li class="fragment"><p><code>GlobalPool</code> aggregates to a single feature matrix.</p></li>
+</ul>
+</section>
+
+<section id="types-of-gnns" class="title-slide slide level1 center">
+<h1>Types of GNNs</h1>
+<ul>
+<li class="fragment"><p>There are many different types of GNNs. Historically, and currently.</p></li>
+<li class="fragment"><p>They usually share many similarities but different names.</p></li>
+<li class="fragment"><p>Generally three types: Convolutional, Attentional, and Message Passing.</p></li>
 </ul>
 </section>
 
 <section id="convolutional" class="title-slide slide level1 center">
 <h1>Convolutional</h1>
 <ul>
-<li class="fragment"><p>We aggregate the sum of features of neighbours multiplied by a constant.</p></li>
-<li class="fragment"><p>Might recognise this as a propogation of neural state or neural field equation.</p></li>
-<li class="fragment"><p>It doesn’t need to be a sum (any permutation invariant function will do).</p></li>
+<li class="fragment"><p>Features are embedded into some latent space through a shared feature transformation <span class="math inline">\(W\)</span>.</p></li>
+<li class="fragment"><p>We aggregate the sum of features of nodes neighbourhood (usually node inclusive) multiplied by some weighting factor <span class="math inline">\(\alpha_{ij}\)</span> (usually <span class="math inline">\(1/\sqrt(|N_i||N_j|)\)</span>).</p></li>
+<li class="fragment"><p>It doesn’t need to be a sum (any permutation invariant function will do). <span class="math display">\[h_i = f\left(\sum_{j | (i,j) \in E} \alpha_{ij} W x_j \right) \]</span></p></li>
 </ul>
-<p><span class="math display">\[ h_i = f\left(x_i, \sum_{j \wedge (ij)\inE} W_{ij} x_j \right) \]</span></p>
+</section>
+
+<section id="section-3" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/message_passing_conv.png" class="r-stretch"></section>
+
+<section id="convolutional-gnnchain" class="title-slide slide level1 center">
+<h1>Convolutional GNNChain</h1>
+<ul>
+<li class="fragment"><p>Specified by latents in and latents out.</p></li>
+<li class="fragment"><p>API call is <code>GCNConv(in =&gt; out)</code>.</p></li>
+</ul>
+<div class="fragment">
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1"></a>model <span class="op">=</span> <span class="fu">GNNChain</span>(</span>
+<span id="cb5-2"><a href="#cb5-2"></a>    <span class="fu">GCNConv</span>(<span class="fl">3</span><span class="op">=&gt;</span><span class="fl">10</span>),</span>
+<span id="cb5-3"><a href="#cb5-3"></a>    <span class="fu">GCNConv</span>(<span class="fl">10</span><span class="op">=&gt;</span><span class="fl">2</span>),</span>
+<span id="cb5-4"><a href="#cb5-4"></a>    <span class="fu">BatchNorm</span>(<span class="fl">2</span>)</span>
+<span id="cb5-5"><a href="#cb5-5"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>GNNChain(GCNConv(3 =&gt; 10), GCNConv(10 =&gt; 2), BatchNorm(2))</code></pre>
+</div>
+</div>
+</div>
 </section>
 
 <section id="attentional" class="title-slide slide level1 center">
 <h1>Attentional</h1>
 <ul>
-<li class="fragment"><p>We perform a similar procedure but allow the weights to be dynamic.</p></li>
-<li class="fragment"><p>They are therefore functions dependent on data and learnable.</p></li>
+<li class="fragment"><p>We perform a similar procedure but allow the normalising weights to be dynamic.</p></li>
+<li class="fragment"><p>Attention is constructed over the feature weights of a nodes neighbourhood.</p></li>
+<li class="fragment"><p>They are therefore functions dependent on data and learnable: <span class="math display">\[ h_i = f\left(\sum_{j | (ij)\in E} \alpha(x_i, x_j) W x_j \right) \]</span></p></li>
 </ul>
-<p><span class="math display">\[ h_i = f\left(x_i, \sum_{j \wedge (ij)\inE} W(x_i, x_j) x_j \right) \]</span></p>
+</section>
+
+<section id="section-4" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/message_passing_attentional.png" class="r-stretch"></section>
+
+<section id="gatconv" class="title-slide slide level1 center">
+<h1>GATConv</h1>
+<ul>
+<li class="fragment"><p>The graph attention network is the most common in use today.</p></li>
+<li class="fragment"><p>Specified by latents in (and edge features in) to latents out with keywords <code>σ</code>, <code>bias</code>, <code>heads</code>, <code>init</code>, <code>negative_slope</code>, <code>add_self_loops</code>.</p></li>
+</ul>
+<div class="fragment">
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1"></a>model <span class="op">=</span> <span class="fu">GNNChain</span>(</span>
+<span id="cb7-2"><a href="#cb7-2"></a>    <span class="fu">GATConv</span>(<span class="fl">2</span><span class="op">=&gt;</span><span class="fl">3</span>; heads<span class="op">=</span><span class="fl">2</span>),</span>
+<span id="cb7-3"><a href="#cb7-3"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>GNNChain(GATConv(2 =&gt; 1, negative_slope=0.2))</code></pre>
+</div>
+</div>
+</div>
 </section>
 
 <section id="message-passing" class="title-slide slide level1 center">
 <h1>Message Passing</h1>
 <ul>
-<li class="fragment"><p>Receiver now particpates in constructing the signal to itself.</p></li>
-<li class="fragment"><p>Most generic form of graph network.</p></li>
+<li class="fragment"><p>Compute message vector to be sent along an edge dependent on receiver and sender node features and edge features.</p></li>
+<li class="fragment"><p>The messages from each node are aggregated to form the readout.</p></li>
+<li class="fragment"><p>Most generic form of graph network <span class="math display">\[ h_i = f\left(x_i, \sum_{j | (ij) \in E} \phi(x_i,x_j) \right) \]</span></p></li>
 </ul>
-<p><span class="math display">\[ h_i = f\left(x_i, \sum_{j \wedge (ij)\inE} \phi(x_i,x_j) \right) \]</span></p>
 </section>
 
-<section id="state-update" class="title-slide slide level1 center">
-<h1>State update</h1>
+<section id="section-5" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/message_passing.png" class="r-stretch"></section>
+
+<section id="message-passing-1" class="title-slide slide level1 center">
+<h1>Message Passing</h1>
+<ul>
+<li class="fragment"><p>Define a message function on nodes and edges: <span class="math inline">\(f\)</span>.</p></li>
+<li class="fragment"><p>Choose an aggegration function e.g.&nbsp;<code>sum</code>, <code>mean</code> etc.</p></li>
+<li class="fragment"><p>Define a graph and choose graph layer.</p></li>
+<li class="fragment"><p>Apply message to edges with <code>propagate(f, Graph, aggr)</code></p></li>
+</ul>
+</section>
+
+<section id="state-update-and-objective." class="title-slide slide level1 center">
+<h1>State update and objective.</h1>
 <ul>
 <li class="fragment"><p>Early GNNs (1980s) applied update rule to latents until convergence.</p></li>
 <li class="fragment"><p>Modern GNNs do it a fixed time e.g.&nbsp;5 or 20.</p></li>
+<li class="fragment"><p>Latent states are used to feed another layer, or train an objective: regression or classification.</p></li>
 </ul>
-<p><span class="math display">\[ h_i(t + 1) = f(\left(h_i(t), \sum_{j \wedge (ij) \in E} \phi(x_i, x_j) \right) \]</span></p>
 </section>
 
-<section id="objectives" class="title-slide slide level1 center">
-<h1>Objectives:</h1>
-<ul>
-<li class="fragment"><p>Node classification: <span class="math inline">\(p(h_i) \in \text{Category Set}\)</span></p></li>
-<li class="fragment"><p>Graph classifcation: <span class="math inline">\(p(G) = \in \text{Category Set}\)</span></p></li>
-<li class="fragment"><p>Link Prediction: $p(i,j) = e_{ij} $</p></li>
-<li class="fragment"><p>These are normally trained on a classifier (dense) network on the latents.</p></li>
-</ul>
-</section>
+<section id="section-6" class="title-slide slide level1 center">
+<h1></h1>
+<p>Node classification / regression: <span class="math display">\[p(h_i) \in \text{Category Set} / \mathbb{R}^n\]</span></p>
+
+<img data-src="./images/node_classification.png" class="r-stretch"></section>
+
+<section id="section-7" class="title-slide slide level1 center">
+<h1></h1>
+<p>Graph classifcation / regression: <span class="math display">\[p(G) \in \text{Category Set} / \mathbb{R}^n\]</span></p>
+
+<img data-src="./images/graph_classification.png" class="r-stretch"></section>
+
+<section id="section-8" class="title-slide slide level1 center">
+<h1></h1>
+<p>Link Prediction: <span class="math display">\[p(i,j) = e_{ij}\]</span></p>
+
+<img data-src="./images/link_prediction.png" class="r-stretch"></section>
 
 <section id="loss-functions" class="title-slide slide level1 center">
 <h1>Loss Functions</h1>
 <ul>
-<li class="fragment">The loss functions for GNNs must be permutation invariant</li>
-</ul>
-</section>
-
-<section id="technical-implementation" class="title-slide slide level1 center">
-<h1>Technical Implementation</h1>
-<ul>
-<li class="fragment">**Combine all</li>
+<li class="fragment"><p>These are normally trained on a classifier (dense) network on the latents.</p></li>
+<li class="fragment"><p>The loss functions for GNNs must be permutation invariant.</p></li>
+<li class="fragment"><p>Loss is chosen to be objective appropriate e.g.&nbsp;MSE.</p></li>
 </ul>
 </section>
 
 <section id="batching-and-padding" class="title-slide slide level1 center">
 <h1>Batching and Padding</h1>
 <ul>
-<li class="fragment"><p>A set of graphs might have variable numbers of nodes</p></li>
+<li class="fragment"><p>A set of graphs might have variable numbers of nodes.</p></li>
 <li class="fragment"><p>A solution is to appropriately pad adjanceny matrix with zeros.</p></li>
 <li class="fragment"><p>A block matrix has matrices embedded in a matrix: <code>Wb = [W1 W2; W3 W4]</code>.</p></li>
 <li class="fragment"><p>A block diagonal matrix with <code>W2=W3=0</code> will preserve the structure of W1 and W2.</p></li>
-<li class="fragment"><p>Batches can be constructed with block-diagonals of input graphs.</p></li>
 </ul>
+<aside class="notes">
+<ul>
+<li>Big adjancency matrix.</li>
+</ul>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 
-<section id="high-level" class="title-slide slide level1 center">
-<h1>High Level</h1>
+<section id="computationally" class="title-slide slide level1 center">
+<h1>Computationally</h1>
 <ul>
-<li class="fragment"><p>Graphs are generalised forms of natural data: molecules,</p></li>
-<li class="fragment"><p>Graphs are defined by their adjacency matrix.</p></li>
-<li class="fragment"><p>GNNs are graphs with features defined from data.</p></li>
-<li class="fragment"><p>A GNN computes several passes of a message through the graph.</p></li>
-<li class="fragment"><p>The latents perform some learning task.</p></li>
+<li class="fragment"><p>Batch all graphs into a single graph.</p></li>
+<li class="fragment"><p>Use a data loader object to perform stochastic gradient descent.</p></li>
 </ul>
+<div class="fragment">
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1"></a>data <span class="op">=</span> [graph1, graph2, <span class="op">...</span>]</span>
+<span id="cb9-2"><a href="#cb9-2"></a>batchedgraph <span class="op">=</span> Flux.<span class="fu">batch</span>(data)</span>
+<span id="cb9-3"><a href="#cb9-3"></a>loader <span class="op">=</span> <span class="fu">DataLoader</span>(batchedgraph; batchsize<span class="op">=</span><span class="fl">5</span>, shuffle<span class="op">=</span><span class="cn">true</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
 </section>
 
 <section id="convnets-a-familiar-smell" class="title-slide slide level1 center">
 <h1>ConvNets: A familiar smell</h1>
 <ul>
 <li class="fragment"><p>We have already covered a form of GNNs: the conv net.</p></li>
-<li class="fragment"><p>The data structure is a grid topology: the edges are bidirectional in neighbouring pixels</p></li>
+<li class="fragment"><p>The data structure is a grid topology: the edges are bidirectional in neighbouring pixels.</p></li>
 <li class="fragment"><p>The message passing happens through the convolutional filters.</p></li>
 </ul>
 </section>
 
-<section id="recurrent-nets-a-familiar-smell" class="title-slide slide level1 center">
-<h1>Recurrent Nets: A familiar smell</h1>
+<section id="section-9" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/grid_topology.png" class="r-stretch"></section>
+
+<section id="recurrent-nets-a-familiar-smell." class="title-slide slide level1 center">
+<h1>Recurrent Nets: A familiar smell.</h1>
 <ul>
 <li class="fragment"><p>Another form of GNNs covered is the RNN.</p></li>
-<li class="fragment"><p>Line graph: each node has two edges for the data before and after.</p></li>
-<li class="fragment"><p>Sequences form a line graph.</p></li>
+<li class="fragment"><p>Line graph: each node has two edges for the data before and after i.e.&nbsp;a sequence.</p></li>
 <li class="fragment"><p>Message passing happens through the internal and input states.</p></li>
 </ul>
 </section>
+
+<section id="section-10" class="title-slide slide level1 center">
+<h1></h1>
+
+<img data-src="./images/recurrent_topology.png" class="r-stretch"></section>
 
 <section id="generalised-neural-networks" class="title-slide slide level1 center">
 <h1>Generalised Neural Networks</h1>
@@ -601,22 +778,34 @@ Nicholas Gale and Stephen Eglen
 <li class="fragment"><p>The generalisation of neural networks is a recent field: Geometric Deep Learning.</p></li>
 <li class="fragment"><p>It has generated a lot of interest recently.</p></li>
 <li class="fragment"><p>Looks poised to be well suited to biological data.</p></li>
+<li class="fragment"><p>All neural networks are generated by considering underlying symetries of a graph e.g.&nbsp;Translational Invariance =&gt; CNN.</p></li>
+<li class="fragment"><p>Package: <code>GeometricFlux.jl</code></p></li>
 </ul>
 </section>
 
-<section id="a-halo-example" class="title-slide slide level1 center">
-<h1>A Halo Example</h1>
+<section id="halicin-a-halo-example" class="title-slide slide level1 center">
+<h1>Halicin: a Halo Example</h1>
 <ul>
-<li class="fragment">Chemicals have a natural graph structure: represented</li>
+<li class="fragment"><p>Chemicals have a natural graph structure: represented by bonds.</p></li>
+<li class="fragment"><p>Train on a known set of working drugs.</p></li>
+<li class="fragment"><p>Regression on space of potential drug molecules to perform drug screening/discovery.</p></li>
 </ul>
 </section>
 
-<section id="alphafold" class="title-slide slide level1 center">
-<h1>AlphaFold</h1>
+<section id="summary" class="title-slide slide level1 center">
+<h1>Summary</h1>
 <ul>
-<li class="fragment"><p>The AlphaFold network is a GNN</p></li>
-<li class="fragment"><p>Here the p</p></li>
+<li class="fragment"><p>Graphs are generalised forms of natural data: molecules, brains etc.</p></li>
+<li class="fragment"><p>Graphs are defined by their adjacency matrix.</p></li>
+<li class="fragment"><p>GNNs are graphs with features defined from data.</p></li>
+<li class="fragment"><p>A GNN computes several passes of a message through the graph. The latents perform some learning task.</p></li>
 </ul>
+</section>
+
+<section id="references" class="title-slide slide level1 center">
+<h1>References</h1>
+<p><a href="https://pubmed.ncbi.nlm.nih.gov/32084340/">A Deep Learning Approach to Antibiotic Discovery; Stokes et. al.&nbsp;(2020)</a></p>
+<p><a href="https://arxiv.org/abs/2104.13478">Geometric Deep Learning; Bronstein et. al.&nbsp;(2021)</a></p>
 <div class="footer footer-default">
 
 </div>
