@@ -111,6 +111,45 @@ format:
 
 * Open source contribution - documentation could be added to! Anyone can do this.
 
+# Transfomer Codon Task
+
+* A codon is a group of three base nucleotides that encodes an amino acid.
+
+* Can we try and predict amino acid base pairs without knowledge of codons?
+
+#
+:::{.fragment}
+```{julia}
+using CSV, DataFrames, Transformers, Flux, Random, ProgressMeter
+
+amino_codon = Dict( # the amino acid to codon relationship
+    "A" => ["GCU", "GCC", "GCA", "GCG"],
+    "R" => ["CGU", "CGC", "CGA", "CGG", "AGA", "AGG"],
+    "N" => ["AAU", "AAC"],
+    "D" => ["GAU", "GAC"],
+    "B" => ["AAU", "AAC", "GAU", "GAC"],
+    "Q" => ["CAA", "CAG"],
+    "E" => ["GAA", "GAG"],
+    "Z" => ["CAA", "CAG", "GAA", "GAG"],
+    "G" => ["GGU", "GGC", "GGA", "GGG"],
+    "H" => ["CAU", "CAC"],
+    "I" => ["AUU", "AUC", "AUA"],
+    "L" => ["CUU", "CUC", "CUA", "CUG", "UUA", "UUG"],
+    "K" => ["AAA", "AAG"],
+    "M" => ["AUG"],
+    "F" => ["UUU", "UUC"],
+    "P" => ["CCU", "CCC", "CCA", "CCG"],
+    "S" => ["UCU", "UCC", "UCA", "UCG", "AGU", "AGC"],
+    "T" => ["ACU", "ACC", "ACA", "ACG"],
+    "W" => ["UGG"],
+    "Y" => ["UAU", "UAC"],
+    "V" => ["GUU", "GUC", "GUA", "GUG"],
+    #"1" => ["AUG"],
+    #"9" => ["UAA", "UGA", "UAG"],
+);
+```
+:::
+
 
 # Pre-Processing
 
@@ -126,19 +165,26 @@ format:
 #| eval: true
 using Transformers;
 ```
+#
 
 ::: {.fragment}
 ```{julia}
 #| incremental: true
-#| code-line-numbers: "1|2|3|4|"
+#| code-line-numbers: "4|5|8|9"
 #| eval: false
-tokenizer = Transformers.Vocabulary(labels, unknown_symbol)
-sequence = [start_token, sample_sequence_tokens..., end_token]
-encoded_sequence = tokenizer(sequence)
-embedder = Transformers.Embed(512, length(tokenizer)
-embedded_seq = embedder(encoded_sequence)
+pre_process(v) = cat("1", v..., "9"; dims=1)
+labels_y = cat("1", unique(train_y[1])..., "9", "0"; dims=1)
+labels_x = cat("1", unique(train_x[1])..., "9", "0"; dims=1)
+tokenizer_x = Transformers.Vocabulary(labels_x, "0")
+tokenizer_y = Transformers.Vocabulary(labels_y, "0")
+encoded_x = tokenizer_x.(pre_process.(train_x))
+encoded_y = tokenizer_y.(pre_process.(train_y))
+embed_x = Transformers.Embed(d, length(tokenizer_x))
+embed_y = Transformers.Embed(d, length(tokenizer_y))
 ```
 :::
+
+#
 
 # Positional Encoding
 
@@ -155,8 +201,7 @@ embedded_seq = embedder(encoded_sequence)
 ::: {.fragment}
 ```{julia}
 #| eval: false
-positional_embedder = Transformers.PositionEmbedding(512)
-em_postional_seq = embedded_seq .+ positional_embedder(embedded_seq)
+position_embed = Transformers.PositionEmbedding(d)
 ```
 :::
 
@@ -164,6 +209,16 @@ em_postional_seq = embedded_seq .+ positional_embedder(embedded_seq)
 
 ![](./images/embedding_position.png)
 
+#
+
+```{julia}
+#| eval: false
+function embeddingx(x)
+  sem_em = embed_x(x, inv(sqrt(d)))
+  em = sem_em .+ position_embed(sem_em)
+  return em
+end
+```
 
 # Keys, Queries, and Values
 
@@ -172,6 +227,8 @@ em_postional_seq = embedded_seq .+ positional_embedder(embedded_seq)
 * These are the key learnable parameters in the model.
 
 * An efficient subspace representation of information allows for impressive generalisability.
+
+# 
 
 ![](./images/keys_queries.png)
 
@@ -188,12 +245,9 @@ em_postional_seq = embedded_seq .+ positional_embedder(embedded_seq)
 
 # Transformer Attention Head
 
-
 * The Transformer attention mechanism is given by: $$A(K,Q,V) = \text{softmax}\left(\frac{K^TQ}{\sqrt{D}}\right) \odot V$$ $$K = W^KX, Q = W^QX, V = W^VX$$
 
-* Softmax is calculated row by row. $\odot$ is element-wise product.
-
-* We scale by the number of dimensions for gradient stability in training.
+* Softmax is calculated row by row. $\odot$ is element-wise product. Dimensional scaling $\sqrt(D)$ for stability. 
 
 # 
 
@@ -252,9 +306,13 @@ em_postional_seq = embedded_seq .+ positional_embedder(embedded_seq)
 :::{.fragment}
 ```{julia}
 #| eval: false
-encoder_block = Transformers.Transformer(model_d, n_heads, head_d, inner_d)
-encoder_block_output = encoder_block(block_input)
-encoder = Chain(block1, ..., blockn)
+
+Tencoder = Flux.Chain(
+	embeddingx, 
+	Transformer(d, h, hd, innerd), 
+	Transformer(d, h, hd, innerd), 
+	Transformer(d, h, hd, innerd)
+)
 ```
 :::
 
@@ -270,12 +328,26 @@ encoder = Chain(block1, ..., blockn)
 
 * These keys and values are shared across all decoder blocks.
 
+#
+
 :::{.fragment}
 ```{julia}
 #| eval: false
-decoder_block = Transformers.TransformerDecoder(model_d, n_heads, head_d, inner_d)
-decoder_block_output = decoder_block(block_input, encoder_output)
-decoder = Chain(block1, ..., blockn)
+#| code-line-numbers: "1|4|6-12"
+
+Dec1 = TransformerDecoder(d, h, hd, innerd)
+Dec2 = TransformerDecoder(d, h, hd, innerd)
+Dec3 = TransformerDecoder(d, h, hd, innerd)
+ffn = Transformers.Positionwise(Dense(d, length(tokenizer_y)), softmax)
+
+function Tdecoder((y, mx))
+    emy = embeddingy(y)
+    d1 = Dec1(emy, mx)
+    d2 = Dec1(d1, mx)
+    d3 = Dec1(d2, mx)
+    ffn(d3)
+end
+
 ```
 :::
 
@@ -294,6 +366,27 @@ decoder = Chain(block1, ..., blockn)
 
 * Future outputs are masked with `-Inf` to prevent left flowing information: autoregressive.
 
+#
+
+```{julia}
+#| eval: false
+#| code-line-numbers: "4|6|7|8"
+function transcribe_protein(x)
+    seq = [tokenizer_y("1")]
+    tok = ["1"]
+    enc = Tencoder(x)
+    for i = 1:2*length(x)
+        dec = Tdecoder((seq, enc))
+        seqnext = argmax(vec(dec[1:end-1,end]))
+        append!(seq, seqnext)
+        toknext = Transformers.decode(tokenizer_y, seqnext)
+        push!(tok, toknext)
+        toknext == "9" && break
+    end
+    tok
+end
+```
+
 # Loss Functions
 
 * The final step is to `softmax` outputs to generate a probability distribution against a dictionary/vocabulary.
@@ -310,6 +403,30 @@ decoder = Chain(block1, ..., blockn)
 
 * Label smoothing increases model perplexity (at the cost of labelled accuracy).
 
+#
+
+```{julia}
+#| eval: false
+#| code-line-numbers: "4-5"
+function loss(xdata, ydata)
+    L = 0
+    for i in 1:length(ydata)
+        ytarget = Flux.label_smoothing(Flux.onehot(tokenizer_y, ydata[i]), 0.2f0)
+        ypred = Tdecoder((ydata[i], Tencoder(xdata[i])))
+        L += Flux.crossentropy(ytarget, ypred)
+    end
+    return L
+end
+```
+
+#
+
+![](./images/transformer_loss.png)
+
+#
+
+![](./images/transformer_loss_output.png)
+
 # Model Summary
 
 * The encoder takes positional and contextual inputs and the decoder autoregressively produces outputs.
@@ -323,6 +440,7 @@ decoder = Chain(block1, ..., blockn)
 #
 
 ![](./images/transformer_model.png)
+
 
 # Transfer Learning
 
